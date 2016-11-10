@@ -12,7 +12,7 @@ val buy_card : player -> card -> state
 val take_three_gems : player -> color -> color option -> color option -> state
 
 (** [take_two_gems p gem] returns the state after [p] takes two gems,
-* or [Npne] if the move is illegal *)
+* or [None] if the move is illegal *)
 val take_two_gems : player -> color -> state option
 
 (** [reserve_card p c] returns the state after [p] reserves [c] *)

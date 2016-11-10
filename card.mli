@@ -22,15 +22,9 @@ type card = {
 		(** cost in gems for the card of their respective colors *)
 }
 
-type noble = {
-	red : int;
-	blue : int;
-	black : int;
-	green : int;
-	white : int;
-		(** these represent the card requirements in colored cards 
-		* to obtain a noble *)
-}
+(** colors represent the card requirements in colored cards to obtain a noble *)
+type noble = gems
+
 
 (** a player stores all of the necessary information about what a player has
  * done throughout the game*)
