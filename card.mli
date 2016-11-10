@@ -5,16 +5,20 @@ type color =
 | Green
 | White
 
+type gems = {
+	red : int;
+	blue : int;
+	black : int;
+	green : int;
+	white : int;
+}
+
 type card = {
 	color : color;
 		(** color of the card for discounts and nobles *)
 	points : int;
 		(** number of victory points the card is worth *)
-	red_cost : int;
-	blue_cost : int;
-	black_cost : int;
-	green_cost : int;
-	white_cost : int;
+	gem_cost : gems;
 		(** cost in gems for the card of their respective colors *)
 }
 
@@ -31,18 +35,9 @@ type noble = {
 (** a player stores all of the necessary information about what a player has
  * done throughout the game*)
 type player = {
-	red_gems : int ;
-	blue_gems : int;
-	black_gems : int;
-	green_gems : int;
-	white_gems : int;
-	gold_gems : int;
+	gems_held : gems;
 		(** The number of gems a player has*) 
-	red_discount : int ;
-	blue_discount : int;
-	black_discount : int;
-	green_discount : int;
-	white_discount : int;
+	discounts : gems;
 		(** The number of discounts in each color a player has *)
 	reserved : card list;
 		(** The cards that the player has reserved (limit length 3) *)
@@ -53,12 +48,23 @@ type player = {
 		(** The number of points the player has *)
 }
 
+(** the possible moves a player can make *)
+type move = 
+| Three of color * color option * color option
+	(** take three gems *)
+| Two of color
+	(** take two gems *)
+| Buy of card
+	(** buy a card *)
+| Reserve of card
+	(** reserve a card*)
+
 (** A state stores all of the information required in a game of Splendor and 
 * is constantly updated as the game progresses *)
 type state = {
 	players : player list;
 		(** a list of the players playing the game *)
-	current_platyer : player;
+	current_player : player;
 		(** the player whose current turn it is *)
 	tier1_deck : card list;
 	tier2_deck : card list;
@@ -70,6 +76,7 @@ type state = {
 		(** the cards available, seperated by tier *)
 	nobles : noble list;
 		(** the nobles currently available *)
+	available_gems : gems;
 	gem_piles : int;
 	(** used for checking how many gems a player can/must take if there are 
 	less than three piles *)

@@ -1,8 +1,4 @@
-type move = 
-| Three of color * color option * color option
-| Two of color
-| Buy of card
-| Reserve of card
+open Card
 
 
 (** [determine move s returns the move that the ai should make this turn*)
