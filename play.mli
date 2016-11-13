@@ -1,4 +1,5 @@
 open Card
+open Ai
 
 (**[init_state starting_player] initilizes the first state, setting 
 the first player to [starting_player] and setting up the board*)

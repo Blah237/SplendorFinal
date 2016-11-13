@@ -52,7 +52,7 @@ type move =
 	(** buy a card *)
 | Reserve of card
 	(** reserve a card *)
-| Top of card * int
+| Top of int
 	(** reserve the top card of a certain deck tier *)
 
 (** A state stores all of the information required in a game of Splendor and 
