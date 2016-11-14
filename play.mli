@@ -1,6 +1,6 @@
 open Card
 open Ai
-open Graphics
+open Graphic
 
 (**[init_state starting_player] initilizes the first state, setting 
 the first player to [starting_player] and setting up the board*)
