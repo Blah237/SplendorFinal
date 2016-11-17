@@ -20,13 +20,13 @@ let reserve_card p c =
 let reserve_top p tier = 
 	failwith "Unimplemented"
 
-let check_nobles p nobles = 
+let rec check_nobles p nobles = 
 	failwith "Unimplemented"
 
-let end_game p turns = 
+let rec end_game p turns = 
 	failwith "Unimplemented"
 
 (************************************)
 
-let play s m = 
+let rec play s m = 
 	failwith "Unimplemented"
