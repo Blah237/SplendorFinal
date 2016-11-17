@@ -25,6 +25,9 @@ type card = {
 (** colors represent the card requirements in colored cards to obtain a noble *)
 type noble = gems
 
+type player_type = 
+| Ai
+| Human
 
 (** a player stores all of the necessary information about what a player has
  * done throughout the game*)
@@ -36,10 +39,12 @@ type player = {
 	reserved : card list;
 		(** The cards that the player has reserved (limit length 3) *)
 	bought : int;
-		(** the number of cards the player has bought, used for a tiebreaker at the 
-		end of a game *)
+		(** the number of cards the player has bought, used for a tiebreaker 
+		 * at the end of a game *)
 	points : int;
 		(** The number of points the player has *)
+	player_type : player_type
+		(** indicates whether the player is an ai or a human *)
 }
 
 (** the possible moves a player can make *)
@@ -73,6 +78,7 @@ type state = {
 	nobles : noble list;
 		(** the nobles currently available *)
 	available_gems : gems;
+		(** the gems currently available for taking *)
 	gem_piles : int;
 	(** used for checking how many gems a player can/must take if there are 
 	less than three piles *)
