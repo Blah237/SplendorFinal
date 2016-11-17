@@ -2,7 +2,7 @@ open Card
 open Ai
 open Graphic
 
-let init_state starting_player num_players = 
+let init_state starting_player num_human num_ai = 
 	failwith "Unimplemented"
 
 let buy_card p c = 
