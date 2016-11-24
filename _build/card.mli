@@ -1,4 +1,4 @@
-type color = 
+type color =
 | Red
 | Blue
 | Black
@@ -25,7 +25,7 @@ type card = {
 (** colors represent the card requirements in colored cards to obtain a noble *)
 type noble = gems
 
-type player_type = 
+type player_type =
 | Ai
 | Human
 
@@ -33,13 +33,13 @@ type player_type =
  * done throughout the game*)
 type player = {
 	gems_held : gems;
-		(** The number of gems a player has*) 
+		(** The number of gems a player has*)
 	discounts : gems;
 		(** The number of discounts in each color a player has *)
 	reserved : card list;
 		(** The cards that the player has reserved (limit length 3) *)
 	bought : int;
-		(** the number of cards the player has bought, used for a tiebreaker 
+		(** the number of cards the player has bought, used for a tiebreaker
 		 * at the end of a game *)
 	points : int;
 		(** The number of points the player has *)
@@ -48,7 +48,7 @@ type player = {
 }
 
 (** the possible moves a player can make *)
-type move = 
+type move =
 | Three of color * color option * color option
 	(** take three gems *)
 | Two of color
@@ -60,7 +60,7 @@ type move =
 | Top of int
 	(** reserve the top card of a certain deck tier *)
 
-(** A state stores all of the information required in a game of Splendor and 
+(** A state stores all of the information required in a game of Splendor and
 * is constantly updated as the game progresses *)
 type state = {
 	players : player list;
@@ -80,7 +80,6 @@ type state = {
 	available_gems : gems;
 		(** the gems currently available for taking *)
 	gem_piles : int;
-	(** used for checking how many gems a player can/must take if there are 
+	(** used for checking how many gems a player can/must take if there are
 	less than three piles *)
 }
-
