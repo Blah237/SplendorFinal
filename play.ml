@@ -667,25 +667,25 @@ let make_nobles () =
 let init_state starting_player num_human num_ai =
 	failwith "Unimplemented"
 
-let buy_card p c =
+let buy_card p s c =
 	failwith "Unimplemented"
 
-let take_three_gems p g1 g2 g3 =
+let take_three_gems p s g1 g2 g3 =
 	failwith "Unimplemented"
 
-let take_two_gems p gem =
+let take_two_gems p s gem =
 	failwith "Unimplemented"
 
-let reserve_card p c =
+let reserve_card p s c =
 	failwith "Unimplemented"
 
-let reserve_top p tier =
+let reserve_top p s tier =
 	failwith "Unimplemented"
 
-let rec check_nobles p nobles =
+let rec check_nobles p s nobles =
 	failwith "Unimplemented"
 
-let rec end_game p turns =
+let rec end_game p s turns =
 	failwith "Unimplemented"
 
 (************************************)
