@@ -1,12 +1,14 @@
 open Card
 open Ai
 
+let empty_gems = {red = 0; blue = 0; black = 0; green = 0; white = 0}
+
 let make_card color points gem_cost =
 	{color = color;
 	points = points;
 	gem_cost = gem_cost}
 
-let make_tier_1 () =
+let make_tier_1 =
 	let t1_1 = make_card White 0
 	{red = 0;
 	blue = 3;
@@ -252,7 +254,7 @@ let make_tier_1 () =
 	t1_21;t1_22;t1_23;t1_24;t1_25;t1_26;t1_27;t1_28;t1_29;t1_30;
 	t1_31;t1_32;t1_33;t1_34;t1_35;t1_36;t1_37;t1_38;t1_39;t1_40]
 
-	let make_tier_2 () =
+	let make_tier_2 =
 		let t1_1 = make_card White 2
 		{red = 5;
 		blue = 0;
@@ -455,7 +457,7 @@ let make_tier_1 () =
 
 
 
- let make_tier_3 () =
+ let make_tier_3 =
 		let t1_1 = make_card White 4
 		{red = 0;
 		blue = 0;
@@ -600,7 +602,7 @@ let make_tier_1 () =
 	   t1_33;t1_34;t1_35;t1_36;]
 
 
-let make_nobles () =
+let make_nobles =
 	let t1_1 =
 	{red = 0;
 	blue = 3;
@@ -663,9 +665,80 @@ let make_nobles () =
 	white = 4} in
 	[t1_1;t1_2;t1_3;t1_4;t1_5;t1_6;t1_7;t1_8;t1_9;t1_10;]
 
+(* returns a randomized version of [lst] *)
+let shuffle lst = 
+    let rand = List.map (fun c -> (Random.float 1.0, c)) lst in
+    let sort_rand = List.sort compare rand in
+    List.map snd sort_rand
 
-let init_state starting_player num_human num_ai =
-	failwith "Unimplemented"
+(* returns a tuple of the first four elements of the list and the rest of the list *)
+let four_rest lst = 
+	match lst with 
+	| a::b::c::d::tl -> ([a;b;c;d],tl)
+	| _ -> (lst,[])
+
+(* creates a list of length [len] with all elements equal to [x] *)
+let rec make_list len x = 
+	match len with
+	| 0 -> []
+	| _ -> x::(make_list (len - 1) x)
+
+(* return the first [n] elements of a list [lst] *)
+let rec felements n lst = 
+	if n = 0 then [] else
+	match lst with 
+	| [] -> []
+	| h::t -> h::(felements (n-1) t)
+
+(* make the players, randomize the order, shuffle decks, putting out cards *)
+let init_state num_human num_ai =
+	let plyr_human = {gems_held = empty_gems;
+				discounts = empty_gems;
+				reserved = [];
+				bought = 0;
+				points = 0;
+				player_type = Human} in
+	let plyr_ai = {gems_held = empty_gems;
+				discounts = empty_gems;
+				reserved = [];
+				bought = 0;
+				points = 0;
+				player_type = Ai} in
+	let human_players = make_list num_human plyr_human in
+	let ai_players = make_list num_ai plyr_ai in
+	let plyrs = human_players@ai_players in
+	let tier_one = four_rest (shuffle make_tier_1) in
+	let tier_two = four_rest (shuffle make_tier_2) in
+	let tier_three = four_rest (shuffle make_tier_3) in
+	let g = 
+	match num_human + num_ai with
+	| 2 -> 4
+	| 3 -> 5
+	| _ -> 7
+    in 
+    let starting_gems = {red = g; blue = g; black = g; green = g; white = g} in
+	{players = shuffle plyrs;
+		(** a list of the players playing the game *)
+	tier1_deck = snd tier_one;
+	tier2_deck = snd tier_two;
+	tier3_deck = snd tier_three;
+		(** the cards remaining in the decks of cards, seperated by tier *)
+	tier1 = fst tier_one;
+	tier2 = fst tier_two;
+	tier3 = fst tier_three;
+		(** the cards available, seperated by tier *)
+	nobles = felements (num_human + num_ai + 1) (shuffle make_nobles);
+		(** the nobles currently available *)
+	available_gems = starting_gems;
+		(** the gems currently available for taking *)
+	gem_piles = 5;
+	(** used for checking how many gems a player can/must take if there are
+	less than three piles *)
+	turns_taken = 0;
+	(** used for ai behavior *)
+	gold = 5;
+	(** the number of gold coins available **)
+}
 
 let buy_card p s c =
 	failwith "Unimplemented"
@@ -682,8 +755,22 @@ let reserve_card p s c =
 let reserve_top p s tier =
 	failwith "Unimplemented"
 
-let rec check_nobles p s nobles =
-	failwith "Unimplemented"
+let check_nobles p s nob =
+	let rec noble_check player st nobles =
+	match nobles with
+	| [] -> []
+	| h::t -> let disc = player.discounts in 
+			  if disc.red >= h.red 
+			  && disc.blue >= h.blue
+			  && disc.black >= h.black
+			  && disc.green >= h.green
+			  && disc.white >= h.white 
+			  then h::(noble_check player st t)
+			  else (noble_check player st t)
+	in
+	match noble_check p s nob with
+	| [] -> None
+	| l -> Some l
 
 let rec end_game p s turns =
 	failwith "Unimplemented"
