@@ -4,7 +4,6 @@ type color =
 | Black
 | Green
 | White
-| Gold
 
 type gems = {
 	red : int;
