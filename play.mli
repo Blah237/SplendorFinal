@@ -1,9 +1,8 @@
 open Card
 open Ai
 
-(**[init_state starting_player num_human num_ai] initilizes the first state, setting
-the first player to [starting_player] and setting up the board*)
-val init_state : player -> int -> int -> state
+(**[init_state num_human num_ai] initilizes the first state and sets up the board*)
+val init_state : int -> int -> state
 
 (**[buy card p s c] returns the state [s] after [p] buys card [c]*)
 val buy_card : player -> state -> card -> state
