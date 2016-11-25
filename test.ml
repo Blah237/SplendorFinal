@@ -27,6 +27,7 @@ let sample_gems1 = {
   black = 0;
   green = 0;
   white = 0;
+  gold = 0;
 }
 
 let sample_gems2 = {
@@ -35,6 +36,7 @@ let sample_gems2 = {
   black = 0;
   green = 0;
   white = 2;
+  gold = 0;
 }
 
 let sample_gems3 = {
@@ -43,6 +45,7 @@ let sample_gems3 = {
   black = 0;
   green = 0;
   white = 0;
+  gold = 0;
 }
 
 let sample_gems4 = {
@@ -51,6 +54,7 @@ let sample_gems4 = {
   black = 1;
   green = 0;
   white = 0;
+  gold = 0;
 }
 
 let two_players_gems = {
@@ -59,6 +63,7 @@ let two_players_gems = {
   black = 4;
   green = 4;
   white = 4;
+  gold = 5;
 }
 
 let three_players_gems = {
@@ -67,6 +72,7 @@ let three_players_gems = {
   black = 5;
   green = 5;
   white = 5;
+  gold = 5;
 }
 
 let four_players_gems = {
@@ -75,6 +81,7 @@ let four_players_gems = {
   black = 7;
   green = 7;
   white = 7;
+  gold = 5;
 }
 (* ############## moves for testing four players ################# *)
 (* four player game -2 blue *)
@@ -84,6 +91,7 @@ let fpg_2blue = {
   black = 7;
   green = 7;
   white = 7;
+  gold = 5;
 }
 (* four player game -2 blue *)
 let fpg_2 = {
@@ -92,6 +100,7 @@ let fpg_2 = {
   black = 6;
   green = 7;
   white = 7;
+  gold = 5;
 }
 (* ################## moves over for the four player test ######## *)
 
@@ -105,6 +114,7 @@ let sample_discounts1 = {
   black = 0;
   green = 0;
   white = 0;
+  gold = 0;
 }
 
 (****************************************
@@ -185,7 +195,7 @@ let sample_player4 = {
  ****************************************)
 
 (* These are the total cards available in the game *)
- let tier1_deck = make_tier_1 ()
+ let tier1_deck = make_tier_1()
  let tier2_deck = make_tier_2()
  let tier3_deck = make_tier_3()
  (* Total 10 nobles available in the game *)
