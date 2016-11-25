@@ -77,12 +77,86 @@ let determine_domininant_color s =
 				White) in
 	[first;second;third;fourth;fifth]
 
+let total_cost c = 
+	c.gem_cost.red +
+	c.gem_cost.blue +
+	c.gem_cost.green +
+	c.gem_cost.black +
+	c.gem_cost.white
 
-let determine_gem_goal c = 
+let rec get_color_from_tier color acc tier = 
+	match tier with
+	| [] -> acc
+	| hd::tl -> if hd.color = color then
+				let new_acc = hd::acc in
+				get_color_from_tier color new_acc tl
+				else get_color_from_tier color acc tl
+
+let rec get_costs coloredlist acc =
+	match coloredlist with
+	| [] -> acc
+	| hd::tl -> let cost = total_cost hd in
+				let new_acc = cost::acc in
+				get_costs tl new_acc
+
+let rec order_list coloredlist orderedcostlist acc =
+	match coloredlist with
+	| [] -> acc
+	| hd::tl -> if List.hd orderedcostlist = total_cost hd then
+			  let new_acc = hd::acc in
+			  let new_orderedcostlist = List.tl orderedcostlist in
+			  order_list tl new_orderedcostlist new_acc
+			  else 
+			  	let new_coloredlist = tl @ [hd] in
+			  	order_list new_coloredlist orderedcostlist acc
+
+
+let get_ordered_color_list_from_tier color tier = 
+	let colorlist = get_color_from_tier color [] tier in
+	let costlist = get_costs colorlist [] in
+	let orderedcostlist = List.sort compare costlist in
+	let correct_orderedcostlist = List.rev orderedcostlist in
+	order_list colorlist correct_orderedcostlist []
+
+
+let rec determine_early_goal s colorlist acc =
+	match colorlist with
+	| [] -> acc
+	| hd::tl -> 
+		(match hd with
+		| Red -> let thelist = get_ordered_color_list_from_tier Red s.tier1 in
+				 let new_acc = acc @ thelist in
+				 determine_early_goal s tl new_acc
+		| Blue -> let thelist = get_ordered_color_list_from_tier Blue s.tier1 in
+				  let new_acc = acc @ thelist in
+				  determine_early_goal s tl new_acc
+		| Green -> let thelist = get_ordered_color_list_from_tier Green s.tier1 in
+				   let new_acc = acc @ thelist in
+				   determine_early_goal s tl new_acc
+		| Black -> let thelist = get_ordered_color_list_from_tier Black s.tier1 in
+				   let new_acc = acc @ thelist in
+				   determine_early_goal s tl new_acc
+		| White -> let thelist = get_ordered_color_list_from_tier White s.tier1 in
+				   let new_acc = acc @ thelist in
+				   determine_early_goal s tl new_acc)
+
+
+let cost_remaining ai c = 
+	let red_cost = c.gem_cost.red - ai.gems_held.red in
+	let blue_cost = c.gem_cost.blue - ai.gems_held.blue in
+	let green_cost = c.gem_cost.green - ai.gems_held.green in
+	let black_cost = c.gem_cost.black - ai.gems_held.white in
+	let white_cost = c.gem_cost.white - ai.gems_held.white in
+	{red = red_cost;
+	blue = blue_cost;
+	black = black_cost;
+	green = green_cost;
+	white = white_cost}
+
+
+let determine_gem_goal ai c = 
 	failwith "Unimplemented"
 
-let determine_goal s colorlist =
-	
 
 let determine_move move s = 
 	failwith "Unimplemented"
