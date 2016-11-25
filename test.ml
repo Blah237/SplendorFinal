@@ -1,5 +1,6 @@
 open OUnit2
 open Play
+open Card
 
 
 (****************************************
@@ -184,7 +185,7 @@ let sample_player4 = {
  ****************************************)
 
 (* These are the total cards available in the game *)
- let tier1_deck = make_tier_1()
+ let tier1_deck = make_tier_1 ()
  let tier2_deck = make_tier_2()
  let tier3_deck = make_tier_3()
  (* Total 10 nobles available in the game *)
