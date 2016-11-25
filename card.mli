@@ -11,7 +11,6 @@ type gems = {
 	black : int;
 	green : int;
 	white : int;
-	gold: int;
 }
 
 type card = {
@@ -66,8 +65,6 @@ type move =
 type state = {
 	players : player list;
 		(** a list of the players playing the game *)
-	current_player : player;
-		(** the player whose current turn it is *)
 	tier1_deck : card list;
 	tier2_deck : card list;
 	tier3_deck : card list;
@@ -83,6 +80,8 @@ type state = {
 	gem_piles : int;
 	(** used for checking how many gems a player can/must take if there are
 	less than three piles *)
-	turns_taken : int
+	turns_taken : int;
 	(** used for ai behavior *)
+	gold : int;
+	(** the number of gold coins available **)
 }
