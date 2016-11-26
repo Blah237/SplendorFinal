@@ -665,36 +665,28 @@ let make_nobles =
 	white = 4} in
 	[t1_1;t1_2;t1_3;t1_4;t1_5;t1_6;t1_7;t1_8;t1_9;t1_10;]
 
-(* replaces the old player [p] with new player [p2] and returns the list*)
-let rec find_p p p2 lst=
-match lst with
-| [] -> []
-| h::t ->
-   if h = p then p2::find_p p p2 t
-	 else h::find_p p p2 t
-
 (* returns a randomized version of [lst] *)
-let shuffle lst =
+let shuffle lst = 
     let rand = List.map (fun c -> (Random.float 1.0, c)) lst in
     let sort_rand = List.sort compare rand in
     List.map snd sort_rand
 
 (* returns a tuple of the first four elements of the list and the rest of the list *)
-let four_rest lst =
-	match lst with
+let four_rest lst = 
+	match lst with 
 	| a::b::c::d::tl -> ([a;b;c;d],tl)
 	| _ -> (lst,[])
 
 (* creates a list of length [len] with all elements equal to [x] *)
-let rec make_list len x =
+let rec make_list len x = 
 	match len with
 	| 0 -> []
 	| _ -> x::(make_list (len - 1) x)
 
 (* return the first [n] elements of a list [lst] *)
-let rec felements n lst =
+let rec felements n lst = 
 	if n = 0 then [] else
-	match lst with
+	match lst with 
 	| [] -> []
 	| h::t -> h::(felements (n-1) t)
 
@@ -718,12 +710,12 @@ let init_state num_human num_ai =
 	let tier_one = four_rest (shuffle make_tier_1) in
 	let tier_two = four_rest (shuffle make_tier_2) in
 	let tier_three = four_rest (shuffle make_tier_3) in
-	let g =
+	let g = 
 	match num_human + num_ai with
 	| 2 -> 4
 	| 3 -> 5
 	| _ -> 7
-    in
+    in 
     let starting_gems = {red = g; blue = g; black = g; green = g; white = g} in
 	{players = shuffle plyrs;
 		(** a list of the players playing the game *)
@@ -755,65 +747,7 @@ let take_three_gems p s g1 g2 g3 =
 	failwith "Unimplemented"
 
 let take_two_gems p s gem =
-	match gem with
-	| Red ->
-	   (* if available gems < 4 then none *)
-	   if s.available_gems.red < 4 then None
-		 else
-		    (* modify player and state *)
-				let new_state_gems = {
-					red = s.available_gems.red - 2;
-					blue = s.available_gems.blue;
-					black = s.available_gems.black;
-					green = s.available_gems.green;
-					white = s.available_gems.white;
-				} in
-			  (* New gem pile *)
-				let new_gems = {
-					red = p.gems_held.red + 2;
-					blue = p.gems_held.blue;
-					black = p.gems_held.black;
-					green = p.gems_held.green;
-					white = p.gems_held.white;
-				} in
-				(* Modified player *)
-				let p_new = {
-					gems_held = new_gems
-					discounts = p.discounts;
-					reserved = p.reserved
-					bought = p.bought
-					points = p.points
-					player_type = p.player_type
-				} in
-				(* Create the new state *)
-				let new_p_list = find_p p p_new s.players in
-				{
-					players = new_p_list;
-						(** a list of the players playing the game *)
-					tier1_deck = s.tier1_deck
-					tier2_deck = s.tier2_deck
-					tier3_deck = s.tier3_deck
-						(** the cards remaining in the decks of cards, seperated by tier *)
-					tier1 = s.tier1
-					tier2 = s.tier2
-					tier3 = s.tier3
-						(** the cards available, seperated by tier *)
-					nobles = s.nobles
-						(** the nobles currently available *)
-					available_gems = new_state_gems
-						(** the gems currently available for taking *)
-					gem_piles = s.gem_piles
-					(** used for checking how many gems a player can/must take if there are
-					less than three piles *)
-					turns_taken = s.turns_taken + 1
-					(** used for ai behavior *)
-					gold = s.gold
-					(** the number of gold coins available **)
-				}
-	| Blue ->
-	| Green ->
-	| Black ->
-	| White ->
+	failwith "Unimplemented"
 
 let reserve_card p s c =
 	failwith "Unimplemented"
@@ -825,12 +759,12 @@ let check_nobles p s nob =
 	let rec noble_check player st nobles =
 	match nobles with
 	| [] -> []
-	| h::t -> let disc = player.discounts in
-			  if disc.red >= h.red
+	| h::t -> let disc = player.discounts in 
+			  if disc.red >= h.red 
 			  && disc.blue >= h.blue
 			  && disc.black >= h.black
 			  && disc.green >= h.green
-			  && disc.white >= h.white
+			  && disc.white >= h.white 
 			  then h::(noble_check player st t)
 			  else (noble_check player st t)
 	in
