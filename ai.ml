@@ -39,8 +39,8 @@ let determine_domininant_color s =
 	let black_count_2 = gather_colors_black s.tier2 in
 	let black_count_3 = gather_colors_black s.tier3 in
 	let white_count_1 = gather_colors_white s.tier1 in
-	let white_count_2 = gather_colors_white s.tier1 in
-	let white_count_3 = gather_colors_white s.tier1 in
+	let white_count_2 = gather_colors_white s.tier2 in
+	let white_count_3 = gather_colors_white s.tier3 in
 	let total_red = red_count_1 + red_count_2 + red_count_3 in
 	let total_blue = blue_count_1 + blue_count_2 + blue_count_3 in
 	let total_green = green_count_1 + green_count_2 + green_count_3 in
@@ -142,21 +142,217 @@ let rec determine_early_goal s colorlist acc =
 
 
 let cost_remaining ai c = 
-	let red_cost = c.gem_cost.red - ai.gems_held.red in
-	let blue_cost = c.gem_cost.blue - ai.gems_held.blue in
-	let green_cost = c.gem_cost.green - ai.gems_held.green in
-	let black_cost = c.gem_cost.black - ai.gems_held.white in
-	let white_cost = c.gem_cost.white - ai.gems_held.white in
+	let red_cost = c.gem_cost.red - ai.gems_held.red - ai.discounts.red in
+	let blue_cost = c.gem_cost.blue - ai.gems_held.blue  - ai.discounts.blue in
+	let green_cost = c.gem_cost.green - ai.gems_held.green 
+	- ai.discounts.green in
+	let black_cost = c.gem_cost.black - ai.gems_held.white 
+	- ai.discounts.white in
+	let white_cost = c.gem_cost.white - ai.gems_held.white  -
+    ai.discounts.black in
 	{red = red_cost;
 	blue = blue_cost;
 	black = black_cost;
 	green = green_cost;
 	white = white_cost}
 
+let rec remove_zero_costs costlist acc = 
+	match costlist with
+	| [] -> acc
+	| (a,b)::tl -> if b <= 0 then remove_zero_costs tl acc else 
+				let new_acc = (a,b)::acc in
+				remove_zero_costs tl new_acc
 
-let determine_gem_goal ai c = 
-	failwith "Unimplemented"
+let make_paired_list costrecord = 
+	let thered = (Red, costrecord.red) in
+	let theblue = (Blue, costrecord.blue) in
+	let theblack = (Black, costrecord.black) in
+	let thegreen = (Green, costrecord.green) in
+	let thewhite = (White, costrecord.white) in
+	[thered;theblue;theblack;thegreen;thewhite]
+
+let rec make_cost_list costpairs acc = 
+	match costpairs with
+	| [] -> acc
+	| (a,b)::tl -> let new_acc = b::acc in
+				   make_cost_list tl new_acc
+
+let rec order_positive_costs orderedcostlist costpairlist acc = 
+	match orderedcostlist with
+	| [] -> acc
+	| hd::tl -> match costpairlist with
+				| [] -> acc
+				| (a,b)::tl2 -> if hd = b then 
+					let new_acc = a::acc in
+					order_positive_costs tl tl2 new_acc
+				else 
+					let new_coloredlist = tl2 @ [(a,b)] in
+					order_positive_costs orderedcostlist new_coloredlist acc
 
 
-let determine_move move s = 
+
+let rec determine_gem_goal ai clist acc = 
+	match clist with
+	| [] -> acc
+	| hd::tl -> 
+		let remainingcost = cost_remaining ai hd in
+		let pairedlist = make_paired_list remainingcost in
+		let zero_removed = remove_zero_costs pairedlist [] in
+		let costlist = make_cost_list zero_removed [] in
+		let orderedcostlist = List.sort compare costlist in
+		let thelist = order_positive_costs orderedcostlist zero_removed [] in
+		let new_acc = acc @ thelist in
+		determine_gem_goal ai tl new_acc
+
+let is_purchasable ai c = 
+	let remainingcost = cost_remaining ai c in
+	let pairs = make_paired_list remainingcost in
+	let no_zeroes = remove_zero_costs pairs [] in
+	if List.length no_zeroes = 0 then true else false
+
+let rec try_purchase_all ai orderedgoals = 
+	match orderedgoals with
+	| [] -> None
+	| hd::tl -> if is_purchasable ai hd then 
+				let the_move = Buy hd in Some the_move
+				else try_purchase_all ai tl
+
+let make_list_of_record thegems = 
+	let thered = thegems.red in
+	let theblue = thegems.blue in
+	let theblack = thegems.black in
+	let thegreen = thegems.green in
+	let thewhite = thegems.white in
+	[thered;theblue;theblack;thegreen;thewhite]
+
+let rec sum_list thelist acc =
+	match thelist with
+	| [] -> acc 
+	| hd::tl -> let new_acc = acc + hd in
+				sum_list tl new_acc
+
+let rec gem_piles_1 thegemspairedlist = 
+	match thegemspairedlist with
+	| [] -> Pass
+	| (a,b)::tl -> if b <> 0 then Three (a,None,None) else gem_piles_1 tl
+
+let rec gem_piles_2 thegemspairedlist acc =
+	if List.length acc = 2 then 
+	let thefirst = List.nth acc 0 in
+	let thesecond = List.nth acc 1 in
+	Three (thefirst, Some thesecond, None) else
+	match thegemspairedlist with
+	| [] -> Pass
+	| (a,b)::tl -> if b = 0 then gem_piles_2 tl acc else
+				   let new_acc = a::acc in
+				   gem_piles_2 tl new_acc
+
+let rec gem_piles_3 thegemspairedlist acc =
+	if List.length acc = 3 then 
+	let thefirst = List.nth acc 0 in
+	let thesecond = List.nth acc 1 in
+	let thethird = List.nth acc 2 in
+	Three (thefirst, Some thesecond, Some thethird) else
+	match thegemspairedlist with
+	| [] -> Pass
+	| (a,b)::tl -> if b = 0 then gem_piles_3 tl acc else
+				   let new_acc = a::acc in
+				   gem_piles_3 tl new_acc
+
+
+let rec normal_gem_move available gemgoals acc =
+	if List.length acc = 3 then 
+	let thefirst = List.nth acc 0 in
+	let thesecond = List.nth acc 1 in
+	let thethird = List.nth acc 2 in
+	Three (thefirst, Some thesecond, Some thethird)
+	else 
+	(match gemgoals with
+	| [] -> 
+		if List.length acc = 2 then
+			let thefirst = List.nth acc 0 in
+			let thesecond = List.nth acc 1 in
+			Three (thefirst, Some thesecond, None)
+		else if List.length acc = 1 then
+			let thefirst = List.nth acc 0 in
+			Three (thefirst, None, None)
+		else Pass
+	| hd::tl -> 
+	(match hd with 
+	| Red -> if available.red > 0 then let new_acc = hd::acc in
+								  let new_available = 
+								  {red = available.red - 1;
+								  blue = available.blue;
+								  black = available.black;
+								  green = available.green;
+								  white = available.white} in
+								  normal_gem_move new_available tl new_acc
+			 else normal_gem_move available tl acc
+	| Blue -> if available.blue > 0 then let new_acc = hd::acc in
+								  let new_available = 
+								  {red = available.red;
+								  blue = available.blue - 1;
+								  black = available.black;
+								  green = available.green;
+								  white = available.white} in
+								  normal_gem_move new_available tl new_acc
+			  else normal_gem_move available tl acc
+	| Black -> if available.black > 0 then let new_acc = hd::acc in
+								  let new_available = 
+								  {red = available.red;
+								  blue = available.blue;
+								  black = available.black - 1;
+								  green = available.green;
+								  white = available.white} in
+								  normal_gem_move new_available tl new_acc
+			   else normal_gem_move available tl acc
+	| Green -> if available.green > 0 then let new_acc = hd::acc in
+								  let new_available = 
+								  {red = available.red;
+								  blue = available.blue;
+								  black = available.black;
+								  green = available.green - 1;
+								  white = available.white} in
+								  normal_gem_move new_available tl new_acc
+			   else normal_gem_move available tl acc
+	| White -> if available.white > 0 then let new_acc = hd::acc in
+								  let new_available = 
+								  {red = available.red;
+								  blue = available.blue;
+								  black = available.black;
+								  green = available.green;
+								  white = available.white - 1} in
+								  normal_gem_move new_available tl new_acc
+               else normal_gem_move available tl acc))
+
+
+let determine_early_move s ai = 
+	let dominants = determine_domininant_color s in
+	let early_goal = determine_early_goal s dominants [] in
+	let primary_goal = List.hd early_goal in
+	let basic_list_of_gems = make_list_of_record ai.gems_held in
+	let total_ai_gems = sum_list basic_list_of_gems 0 in
+	let paired_list = make_paired_list s.available_gems in
+	if is_purchasable ai primary_goal then Buy primary_goal else
+	if s.gem_piles <= 3 then 
+	let zero_gem_move = try_purchase_all ai early_goal in
+	match zero_gem_move with 
+	| Some x -> x
+	| None ->
+	if s.gem_piles = 0 then Pass else
+	if s.gem_piles = 1 then gem_piles_1 paired_list else
+	if s.gem_piles = 2 then gem_piles_2 paired_list [] else
+	gem_piles_3 paired_list [] else
+    if total_ai_gems > 7 then let zero_gem_move = try_purchase_all ai early_goal in
+    match zero_gem_move with
+    | Some x -> x
+    | None -> let thegemgoals = determine_gem_goal ai early_goal [] in
+    		  normal_gem_move s.available_gems thegemgoals []
+    else 
+    	let thegemgoals = determine_gem_goal ai early_goal [] in
+    		  normal_gem_move s.available_gems thegemgoals []
+
+   	
+
+let determine_move s = 
 	failwith "Unimplemented"
