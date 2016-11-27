@@ -735,9 +735,38 @@ match c.color with
 	}
 
 
+(* Calculates the num of gem piles*)
+let calc_gem_piles gems =
+	let r = gems.red in
+	let g = gems.green in
+	let w = gems.white in
+	let b = gems.blue in
+	let bl = gems.black in
+	let map = [r;g;w;b;bl] in
+	List.fold_left (fun d x ->if x > 0 then d+1 else d) 0 map
+
+(* Takes a tier deck, cards out for that tier and returns
+ * a new list of cards out for that tier popped form the top of the deck
+ * also removes the card from the field *)
+ let refresh_cards tier_deck tier_out c =
+ match tier1_deck with
+ | [] -> ([],remove c tier_out)
+ | h::t ->
+  (* pops the first card, replaces it with the bought card *)
+  (List.tl tier_deck, find_p c (List.hd tier_deck) tier_out)
+
 (* Check if an item exists in a list *)
 let exists k l =
     List.fold_left (fun b x -> b || x = k) false l
+
+
+(* replaces the old player [p] with new player [p2] and returns the list*)
+let rec remove p lst=
+match lst with
+| [] -> []
+| h::t ->
+   if h = p then find_p p p2 t
+	 else h::find_p p p2 t
 
 (* replaces the old player [p] with new player [p2] and returns the list*)
 let rec find_p p p2 lst=
@@ -837,11 +866,19 @@ let buy_card p s c =
 			 white = p.gems_held.white - c.gem_cost.white;
 			 black = p.gems_held.black - c.gem_cost.black;
 		 } in
+		 (* Update gems on table *)
+		 let table_gems = {
+			 red = s.available_gems.red + c.gem_cost.red;
+			 blue = s.available_gems.blue + c.gem_cost.blue;
+			 green = s.available_gems.green + c.gem_cost.green;
+			 white = s.available_gems.white + c.gem_cost.white;
+			 black = s.available_gems.black + c.gem_cost.black;
+		 } in
 		 (* update discounts *)
 		 let new_discounts = make_new_discounts p.discounts c in
 		 let bought_cards = p.bought + 1 in
 		 let pts = p.points + c.points in
-		 let updated_players = {
+		 let updated_player = {
 			 gems_held = new_player_gems;
 			 discounts = new_discounts;
 			 points = pts;
@@ -852,6 +889,31 @@ let buy_card p s c =
 		 } in
 		 (* Finished updated the player need to update state *)
 		 if exists c s.tier1 then
+		   let (deck,table) = refresh_cards s.tier1_deck tier1 c in
+			 let new_p_list = List.tl s.players @ [updated_player] in
+			 {
+				 players = new_p_list;
+					 (** a list of the players playing the game *)
+				 tier1_deck = deck
+				 tier2_deck = s.tier2_deck
+				 tier3_deck = s.tier3_deck
+					 (** the cards remaining in the decks of cards, seperated by tier *)
+				 tier1 = table
+				 tier2 = s.tier2
+				 tier3 = s.tier3
+					 (** the cards available, seperated by tier *)
+				 nobles = s.nobles
+					 (** the nobles currently available *)
+				 available_gems = table_gems
+					 (** the gems currently available for taking *)
+				 gem_piles = calc_gem_piles s.gem_piles
+				 (** used for checking how many gems a player can/must take if there are
+				 less than three piles *)
+				 turns_taken = s.turns_taken + 1
+				 (** used for ai behavior *)
+				 gold = s.gold
+				 (** the number of gold coins available **)
+			 }
 		 else if exists c s.tier2 then
 		 else
 	| (true,x) ->
