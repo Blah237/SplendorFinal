@@ -5,7 +5,7 @@ open Ai
 val init_state : int -> int -> state
 
 (**[buy card p state c] returns the state [s] after [p] buys card [c]*)
-val buy_card : player -> state -> card -> state
+val buy_card : player -> state -> card -> state option
 
 (**[take_three_gems p state g1 g2 g3] returns the state after [p] takes three gems, or
 * less if taking three gems is not possible *)

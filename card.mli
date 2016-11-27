@@ -43,8 +43,10 @@ type player = {
 		 * at the end of a game *)
 	points : int;
 		(** The number of points the player has *)
-	player_type : player_type
+	player_type : player_type;
 		(** indicates whether the player is an ai or a human *)
+	gold : int;
+	  (* number of gold coins held by the player *)
 }
 
 (** the possible moves a player can make *)

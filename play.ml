@@ -665,6 +665,80 @@ let make_nobles =
 	white = 4} in
 	[t1_1;t1_2;t1_3;t1_4;t1_5;t1_6;t1_7;t1_8;t1_9;t1_10;]
 
+
+(* Calculates distance between a card and players held gems *)
+let calc_dis p c =
+	let r = p.gems_held.red - c.gem_cost.red in
+	let g = p.gems_held.green - c.gem_cost.green in
+	let w = p.gems_held.white - c.gem_cost.white in
+	let b = p.gems_held.blue - c.gem_cost.blue in
+	let bl = p.gems_held.black - c.gem_cost.black in
+	let map = [r;g;w;b;bl] in
+  List.fold_left (fun d x ->if x > 0 then d+x else d) 0 map
+
+
+(* True if player p can purchase card c, false otherwise *)
+(* Includes gold and whether they need to use it as the snd val *)
+let can_buy p c =
+  if p.gems_held.red >= c.gem_cost.red
+	&& p.gems_held.blue >= c.gem_cost.blue
+	&& p.gems_held.green >= c.gem_cost.green
+	&& p.gems_held.white >= c.gem_cost.white
+	&& p.gems_held.black >= c.gem_cost.black
+	then (true,0)
+	else if calc_dis p c <= p.gold then (true,calc_dis p c)
+	else (false,0)
+
+
+(* Creates a new discount gem list based on current and card *)
+let make_new_discounts p c =
+match c.color with
+| Red ->
+	{
+	 red = p.red + 1;
+	 blue = p.blue;
+	 black = p.black;
+	 green = p.green;
+	 white = p.white;
+	}
+| Blue ->
+	{
+		red = p.red;
+		blue = p.blue + 1;
+		black = p.black;
+		green = p.green;
+		white = p.white;
+	}
+| White ->
+	{
+		red = p.red;
+		blue = p.blue;
+		black = p.black;
+		green = p.green;
+		white = p.white + 1;
+	}
+| Green ->
+	{
+		red = p.red;
+		blue = p.blue;
+		black = p.black;
+		green = p.green +1;
+		white = p.white;
+	}
+| Black ->
+	{
+		red = p.red;
+		blue = p.blue;
+		black = p.black + 1;
+		green = p.green;
+		white = p.white;
+	}
+
+
+(* Check if an item exists in a list *)
+let exists k l =
+    List.fold_left (fun b x -> b || x = k) false l
+
 (* replaces the old player [p] with new player [p2] and returns the list*)
 let rec find_p p p2 lst=
 match lst with
@@ -705,12 +779,14 @@ let init_state num_human num_ai =
 				reserved = [];
 				bought = 0;
 				points = 0;
+				gold = 0;
 				player_type = Human} in
 	let plyr_ai = {gems_held = empty_gems;
 				discounts = empty_gems;
 				reserved = [];
 				bought = 0;
 				points = 0;
+				gold = 0;
 				player_type = Ai} in
 	let human_players = make_list num_human plyr_human in
 	let ai_players = make_list num_ai plyr_ai in
@@ -749,12 +825,44 @@ let init_state num_human num_ai =
 }
 
 let buy_card p s c =
-	failwith "Unimplemented"
+	(*  need to see which pile this card belongs to *)
+  (* First Checking if they can afford the card *)
+	match can_buy p c with
+	| (true,0) ->
+		 (* No need to use gold *)
+		 let new_player_gems = {
+			 red = p.gems_held.red - c.gem_cost.red;
+			 blue = p.gems_held.blue - c.gem_cost.blue;
+			 green = p.gems_held.green - c.gem_cost.green;
+			 white = p.gems_held.white - c.gem_cost.white;
+			 black = p.gems_held.black - c.gem_cost.black;
+		 } in
+		 (* update discounts *)
+		 let new_discounts = make_new_discounts p.discounts c in
+		 let bought_cards = p.bought + 1 in
+		 let pts = p.points + c.points in
+		 let updated_players = {
+			 gems_held = new_player_gems;
+			 discounts = new_discounts;
+			 points = pts;
+			 bought = bought_cards;
+			 gold = p.gold;
+			 player_type = p.player_type;
+			 reserved = p.reserved;
+		 } in
+		 (* Finished updated the player need to update state *)
+		 if exists c s.tier1 then
+		 else if exists c s.tier2 then
+		 else
+	| (true,x) ->
+	| _ -> None
 
 let take_three_gems p s g1 g2 g3 =
 	failwith "Unimplemented"
 
 let take_two_gems p s gem =
+(* Needs to check if player has > 10 gems *)
+(* Apply to all colors *)
 	match gem with
 	| Red ->
 	   (* if available gems < 4 then none *)
@@ -778,15 +886,16 @@ let take_two_gems p s gem =
 				} in
 				(* Modified player *)
 				let p_new = {
-					gems_held = new_gems
+					gems_held = new_gems;
 					discounts = p.discounts;
-					reserved = p.reserved
-					bought = p.bought
-					points = p.points
-					player_type = p.player_type
+					reserved = p.reserved;
+					bought = p.bought;
+					gold = p.gold;
+					points = p.points;
+					player_type = p.player_type;
 				} in
 				(* Create the new state *)
-				let new_p_list = find_p p p_new s.players in
+				let new_p_list = List.tl s.players @ [p_new] in
 				{
 					players = new_p_list;
 						(** a list of the players playing the game *)
@@ -842,6 +951,23 @@ let rec end_game p s turns =
 	failwith "Unimplemented"
 
 (************************************)
-
+(* Unfinished play - need to have better logic for when None is returned
+ * player should be able to do another move *)
 let rec play s m =
-	failwith "Unimplemented"
+	match m with
+	| Three (x, y, z) ->
+	   take_three_gems List.hd s.players s x y z
+	| Two (x) ->
+	   let ret_val = take_two_gems List.hd s.players s x in
+		 match ret_val with
+		 | None -> s
+		 | Some (c) -> c
+	| Buy(x) ->
+	   let ret_val = buy_card List.hd s.players s x in
+		 match ret_val with
+		 | None -> s
+		 | Some (c) -> c
+	| Reserve(x) ->
+	   reserve_card List.hd s.players s x
+	| Top(x) ->
+	   reserver_top List.hd s.players s x
