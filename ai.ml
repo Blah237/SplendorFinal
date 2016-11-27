@@ -25,6 +25,7 @@ let rec gather_colors_white deck=
 	| [] -> 0
 	| hd::tl -> hd.gem_cost.white + gather_colors_white tl
 
+(** Determine the dominant colors on the board*)
 let determine_domininant_color s = 
 	let red_count_1 = gather_colors_red s.tier1 in
 	let red_count_2 = gather_colors_red s.tier2 in
@@ -110,7 +111,7 @@ let rec order_list coloredlist orderedcostlist acc =
 			  	let new_coloredlist = tl @ [hd] in
 			  	order_list new_coloredlist orderedcostlist acc
 
-
+(** get the goals of a specific color from a list of cards*)
 let get_ordered_color_list_from_tier color tier = 
 	let colorlist = get_color_from_tier color [] tier in
 	let costlist = get_costs colorlist [] in
@@ -118,7 +119,7 @@ let get_ordered_color_list_from_tier color tier =
 	let correct_orderedcostlist = List.rev orderedcostlist in
 	order_list colorlist correct_orderedcostlist []
 
-
+(** determine the list of goals for the early game, dependent on dominant colors*)
 let rec determine_early_goal s colorlist acc =
 	match colorlist with
 	| [] -> acc
@@ -190,7 +191,7 @@ let rec order_positive_costs orderedcostlist costpairlist acc =
 					order_positive_costs orderedcostlist new_coloredlist acc
 
 
-
+(** determines the gems an ai should take based on card goals*)
 let rec determine_gem_goal ai clist acc = 
 	match clist with
 	| [] -> acc
@@ -325,7 +326,8 @@ let rec normal_gem_move available gemgoals acc =
 								  normal_gem_move new_available tl new_acc
                else normal_gem_move available tl acc))
 
-
+(** determines the move an ai should make in the early game, using dominant
+* colors and only looking at tier 1*)
 let determine_early_move s ai = 
 	let dominants = determine_domininant_color s in
 	let early_goal = determine_early_goal s dominants [] in
