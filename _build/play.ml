@@ -665,139 +665,28 @@ let make_nobles =
 	white = 4} in
 	[t1_1;t1_2;t1_3;t1_4;t1_5;t1_6;t1_7;t1_8;t1_9;t1_10;]
 
-
-(* Calculates distance between a card and players held gems *)
-let calc_dis p c =
-	let r = p.gems_held.red - c.gem_cost.red in
-	let g = p.gems_held.green - c.gem_cost.green in
-	let w = p.gems_held.white - c.gem_cost.white in
-	let b = p.gems_held.blue - c.gem_cost.blue in
-	let bl = p.gems_held.black - c.gem_cost.black in
-	let map = [r;g;w;b;bl] in
-  List.fold_left (fun d x ->if x > 0 then d+x else d) 0 map
-
-
-(* True if player p can purchase card c, false otherwise *)
-(* Includes gold and whether they need to use it as the snd val *)
-let can_buy p c =
-  if p.gems_held.red >= c.gem_cost.red
-	&& p.gems_held.blue >= c.gem_cost.blue
-	&& p.gems_held.green >= c.gem_cost.green
-	&& p.gems_held.white >= c.gem_cost.white
-	&& p.gems_held.black >= c.gem_cost.black
-	then (true,0)
-	else if calc_dis p c <= p.gold then (true,calc_dis p c)
-	else (false,0)
-
-
-(* Creates a new discount gem list based on current and card *)
-let make_new_discounts p c =
-match c.color with
-| Red ->
-	{
-	 red = p.red + 1;
-	 blue = p.blue;
-	 black = p.black;
-	 green = p.green;
-	 white = p.white;
-	}
-| Blue ->
-	{
-		red = p.red;
-		blue = p.blue + 1;
-		black = p.black;
-		green = p.green;
-		white = p.white;
-	}
-| White ->
-	{
-		red = p.red;
-		blue = p.blue;
-		black = p.black;
-		green = p.green;
-		white = p.white + 1;
-	}
-| Green ->
-	{
-		red = p.red;
-		blue = p.blue;
-		black = p.black;
-		green = p.green +1;
-		white = p.white;
-	}
-| Black ->
-	{
-		red = p.red;
-		blue = p.blue;
-		black = p.black + 1;
-		green = p.green;
-		white = p.white;
-	}
-
-
-(* Calculates the num of gem piles*)
-let calc_gem_piles gems =
-	let r = gems.red in
-	let g = gems.green in
-	let w = gems.white in
-	let b = gems.blue in
-	let bl = gems.black in
-	let map = [r;g;w;b;bl] in
-	List.fold_left (fun d x ->if x > 0 then d+1 else d) 0 map
-
-(* Takes a tier deck, cards out for that tier and returns
- * a new list of cards out for that tier popped form the top of the deck
- * also removes the card from the field *)
- let refresh_cards tier_deck tier_out c =
- match tier1_deck with
- | [] -> ([],remove c tier_out)
- | h::t ->
-  (* pops the first card, replaces it with the bought card *)
-  (List.tl tier_deck, find_p c (List.hd tier_deck) tier_out)
-
-(* Check if an item exists in a list *)
-let exists k l =
-    List.fold_left (fun b x -> b || x = k) false l
-
-
-(* replaces the old player [p] with new player [p2] and returns the list*)
-let rec remove p lst=
-match lst with
-| [] -> []
-| h::t ->
-   if h = p then find_p p p2 t
-	 else h::find_p p p2 t
-
-(* replaces the old player [p] with new player [p2] and returns the list*)
-let rec find_p p p2 lst=
-match lst with
-| [] -> []
-| h::t ->
-   if h = p then p2::find_p p p2 t
-	 else h::find_p p p2 t
-
 (* returns a randomized version of [lst] *)
-let shuffle lst =
+let shuffle lst = 
     let rand = List.map (fun c -> (Random.float 1.0, c)) lst in
     let sort_rand = List.sort compare rand in
     List.map snd sort_rand
 
 (* returns a tuple of the first four elements of the list and the rest of the list *)
-let four_rest lst =
-	match lst with
+let four_rest lst = 
+	match lst with 
 	| a::b::c::d::tl -> ([a;b;c;d],tl)
 	| _ -> (lst,[])
 
 (* creates a list of length [len] with all elements equal to [x] *)
-let rec make_list len x =
+let rec make_list len x = 
 	match len with
 	| 0 -> []
 	| _ -> x::(make_list (len - 1) x)
 
 (* return the first [n] elements of a list [lst] *)
-let rec felements n lst =
+let rec felements n lst = 
 	if n = 0 then [] else
-	match lst with
+	match lst with 
 	| [] -> []
 	| h::t -> h::(felements (n-1) t)
 
@@ -808,14 +697,12 @@ let init_state num_human num_ai =
 				reserved = [];
 				bought = 0;
 				points = 0;
-				gold = 0;
 				player_type = Human} in
 	let plyr_ai = {gems_held = empty_gems;
 				discounts = empty_gems;
 				reserved = [];
 				bought = 0;
 				points = 0;
-				gold = 0;
 				player_type = Ai} in
 	let human_players = make_list num_human plyr_human in
 	let ai_players = make_list num_ai plyr_ai in
@@ -823,12 +710,12 @@ let init_state num_human num_ai =
 	let tier_one = four_rest (shuffle make_tier_1) in
 	let tier_two = four_rest (shuffle make_tier_2) in
 	let tier_three = four_rest (shuffle make_tier_3) in
-	let g =
+	let g = 
 	match num_human + num_ai with
 	| 2 -> 4
 	| 3 -> 5
 	| _ -> 7
-    in
+    in 
     let starting_gems = {red = g; blue = g; black = g; green = g; white = g} in
 	{players = shuffle plyrs;
 		(** a list of the players playing the game *)
@@ -854,187 +741,13 @@ let init_state num_human num_ai =
 }
 
 let buy_card p s c =
-	(*  need to see which pile this card belongs to *)
-  (* First Checking if they can afford the card *)
-	match can_buy p c with
-	| (true,0) ->
-		 (* No need to use gold *)
-		 let new_player_gems = {
-			 red = p.gems_held.red - c.gem_cost.red;
-			 blue = p.gems_held.blue - c.gem_cost.blue;
-			 green = p.gems_held.green - c.gem_cost.green;
-			 white = p.gems_held.white - c.gem_cost.white;
-			 black = p.gems_held.black - c.gem_cost.black;
-		 } in
-		 (* Update gems on table *)
-		 let table_gems = {
-			 red = s.available_gems.red + c.gem_cost.red;
-			 blue = s.available_gems.blue + c.gem_cost.blue;
-			 green = s.available_gems.green + c.gem_cost.green;
-			 white = s.available_gems.white + c.gem_cost.white;
-			 black = s.available_gems.black + c.gem_cost.black;
-		 } in
-		 (* update discounts *)
-		 let new_discounts = make_new_discounts p.discounts c in
-		 let bought_cards = p.bought + 1 in
-		 let pts = p.points + c.points in
-		 let updated_player = {
-			 gems_held = new_player_gems;
-			 discounts = new_discounts;
-			 points = pts;
-			 bought = bought_cards;
-			 gold = p.gold;
-			 player_type = p.player_type;
-			 reserved = p.reserved;
-		 } in
-		 (* Finished updated the player need to update state *)
-		 if exists c s.tier1 then
-		   let (deck,table) = refresh_cards s.tier1_deck tier1 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
-			 Some {
-				 players = new_p_list;
-					 (** a list of the players playing the game *)
-				 tier1_deck = deck
-				 tier2_deck = s.tier2_deck
-				 tier3_deck = s.tier3_deck
-					 (** the cards remaining in the decks of cards, seperated by tier *)
-				 tier1 = table
-				 tier2 = s.tier2
-				 tier3 = s.tier3
-					 (** the cards available, seperated by tier *)
-				 nobles = s.nobles
-					 (** the nobles currently available *)
-				 available_gems = table_gems
-					 (** the gems currently available for taking *)
-				 gem_piles = calc_gem_piles s.gem_piles
-				 (** used for checking how many gems a player can/must take if there are
-				 less than three piles *)
-				 turns_taken = s.turns_taken + 1
-				 (** used for ai behavior *)
-				 gold = s.gold
-				 (** the number of gold coins available **)
-			 }
-		 else if exists c s.tier2 then
-			 let (deck,table) = refresh_cards s.tier2_deck tier2 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
-			 Some {
-				 players = new_p_list;
-					 (** a list of the players playing the game *)
-				 tier1_deck = s.tier1_deck
-				 tier2_deck = deck
-				 tier3_deck = s.tier3_deck
-					 (** the cards remaining in the decks of cards, seperated by tier *)
-				 tier1 = s.tier1
-				 tier2 = table
-				 tier3 = s.tier3
-					 (** the cards available, seperated by tier *)
-				 nobles = s.nobles
-					 (** the nobles currently available *)
-				 available_gems = table_gems
-					 (** the gems currently available for taking *)
-				 gem_piles = calc_gem_piles s.gem_piles
-				 (** used for checking how many gems a player can/must take if there are
-				 less than three piles *)
-				 turns_taken = s.turns_taken + 1
-				 (** used for ai behavior *)
-				 gold = s.gold
-				 (** the number of gold coins available **)
-			 }
-		 else
-			 let (deck,table) = refresh_cards s.tier3_deck tier3 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
-			 Some {
-				 players = new_p_list;
-					 (** a list of the players playing the game *)
-				 tier1_deck = s.tier1_deck
-				 tier2_deck = s.tier2_deck
-				 tier3_deck = deck
-					 (** the cards remaining in the decks of cards, seperated by tier *)
-				 tier1 = s.tier1
-				 tier2 = s.tier2
-				 tier3 = table
-					 (** the cards available, seperated by tier *)
-				 nobles = s.nobles
-					 (** the nobles currently available *)
-				 available_gems = table_gems
-					 (** the gems currently available for taking *)
-				 gem_piles = calc_gem_piles s.gem_piles
-				 (** used for checking how many gems a player can/must take if there are
-				 less than three piles *)
-				 turns_taken = s.turns_taken + 1
-				 (** used for ai behavior *)
-				 gold = s.gold
-				 (** the number of gold coins available **)
-			 }
-	| (true,x) ->
-	| _ -> None
+	failwith "Unimplemented"
 
 let take_three_gems p s g1 g2 g3 =
 	failwith "Unimplemented"
 
 let take_two_gems p s gem =
-(* Needs to check if player has > 10 gems *)
-(* Apply to all colors *)
-	match gem with
-	| Red ->
-	   (* if available gems < 4 then none *)
-	   if s.available_gems.red < 4 then None
-		 else
-		    (* modify player and state *)
-				let new_state_gems = {
-					red = s.available_gems.red - 2;
-					blue = s.available_gems.blue;
-					black = s.available_gems.black;
-					green = s.available_gems.green;
-					white = s.available_gems.white;
-				} in
-			  (* New gem pile *)
-				let new_gems = {
-					red = p.gems_held.red + 2;
-					blue = p.gems_held.blue;
-					black = p.gems_held.black;
-					green = p.gems_held.green;
-					white = p.gems_held.white;
-				} in
-				(* Modified player *)
-				let p_new = {
-					gems_held = new_gems;
-					discounts = p.discounts;
-					reserved = p.reserved;
-					bought = p.bought;
-					gold = p.gold;
-					points = p.points;
-					player_type = p.player_type;
-				} in
-				(* Create the new state *)
-				let new_p_list = List.tl s.players @ [p_new] in
-				{
-					players = new_p_list;
-						(** a list of the players playing the game *)
-					tier1_deck = s.tier1_deck
-					tier2_deck = s.tier2_deck
-					tier3_deck = s.tier3_deck
-						(** the cards remaining in the decks of cards, seperated by tier *)
-					tier1 = s.tier1
-					tier2 = s.tier2
-					tier3 = s.tier3
-						(** the cards available, seperated by tier *)
-					nobles = s.nobles
-						(** the nobles currently available *)
-					available_gems = new_state_gems
-						(** the gems currently available for taking *)
-					gem_piles = s.gem_piles
-					(** used for checking how many gems a player can/must take if there are
-					less than three piles *)
-					turns_taken = s.turns_taken + 1
-					(** used for ai behavior *)
-					gold = s.gold
-					(** the number of gold coins available **)
-				}
-	| Blue ->
-	| Green ->
-	| Black ->
-	| White ->
+	failwith "Unimplemented"
 
 let reserve_card p s c =
 	failwith "Unimplemented"
@@ -1046,12 +759,12 @@ let check_nobles p s nob =
 	let rec noble_check player st nobles =
 	match nobles with
 	| [] -> []
-	| h::t -> let disc = player.discounts in
-			  if disc.red >= h.red
+	| h::t -> let disc = player.discounts in 
+			  if disc.red >= h.red 
 			  && disc.blue >= h.blue
 			  && disc.black >= h.black
 			  && disc.green >= h.green
-			  && disc.white >= h.white
+			  && disc.white >= h.white 
 			  then h::(noble_check player st t)
 			  else (noble_check player st t)
 	in
@@ -1063,23 +776,6 @@ let rec end_game p s turns =
 	failwith "Unimplemented"
 
 (************************************)
-(* Unfinished play - need to have better logic for when None is returned
- * player should be able to do another move *)
+
 let rec play s m =
-	match m with
-	| Three (x, y, z) ->
-	   take_three_gems List.hd s.players s x y z
-	| Two (x) ->
-	   let ret_val = take_two_gems List.hd s.players s x in
-		 match ret_val with
-		 | None -> s
-		 | Some (c) -> c
-	| Buy(x) ->
-	   let ret_val = buy_card List.hd s.players s x in
-		 match ret_val with
-		 | None -> s
-		 | Some (c) -> c
-	| Reserve(x) ->
-	   reserve_card List.hd s.players s x
-	| Top(x) ->
-	   reserver_top List.hd s.players s x
+	failwith "Unimplemented"

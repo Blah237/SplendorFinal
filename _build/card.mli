@@ -43,10 +43,8 @@ type player = {
 		 * at the end of a game *)
 	points : int;
 		(** The number of points the player has *)
-	player_type : player_type;
+	player_type : player_type
 		(** indicates whether the player is an ai or a human *)
-	gold : int;
-	  (* number of gold coins held by the player *)
 }
 
 (** the possible moves a player can make *)
@@ -61,8 +59,6 @@ type move =
 	(** reserve a card *)
 | Top of int
 	(** reserve the top card of a certain deck tier *)
-| Pass 
-	(** used by ai to pass, since taking gold is too complicated to handle *)
 
 (** A state stores all of the information required in a game of Splendor and
 * is constantly updated as the game progresses *)
