@@ -215,6 +215,62 @@ let draw_decks state =
   end in
   ()
 
+(* Type for all possible clicks on the board *)
+type clicked =
+| Green_gem
+| White_gem
+| Blue_gem
+| Black_gem
+| Red_gem
+| Gold_gem
+| Card of int*int  (* Card from deck*order, like deck1*card2 *)
+
+(* Check if user clicked on gem. Returns Some clicked, or None *)
+let gem_click mouse_x mouse_y =
+  let top = height - top_buffer + gem_radius in
+  let diam = 2*gem_radius in
+  if mouse_x < left_buffer - gem_radius ||
+     mouse_x > left_buffer + gem_radius ||
+     mouse_y < top - 6*diam - 5*(gem_buffer - diam) ||
+     mouse_y > top
+  then None
+  else
+    (* Check if click is between gems *)
+    if (top - mouse_y) mod gem_buffer > diam then None
+    else
+      let color = (top - mouse_y) / gem_buffer in
+      if color = 0      then Some Green_gem
+      else if color = 1 then Some White_gem
+      else if color = 2 then Some Blue_gem
+      else if color = 3 then Some Black_gem
+      else if color = 4 then Some Red_gem
+      else                   Some Gold_gem
+
+(* Check if user clicked on card. Returns Some clicked, or None *)
+let card_click mouse_x mouse_y =
+  let top = height - tier_top - card_spacing in
+  if mouse_x < tier_left ||
+     mouse_x > tier_left + 4*card_width + 3*card_spacing ||
+     mouse_y < top - 3*card_height - 2*card_spacing ||
+     mouse_y > top
+  then None
+  else
+    (* Check if click is between gems *)
+    if (top - mouse_y) mod (card_height + card_spacing) > card_height ||
+       (mouse_x - tier_left) mod (card_width + card_spacing) > card_width
+    then None
+  else
+    let tier = 3 - (top - mouse_y)/(card_height + card_spacing) in
+    let card = 1 + (mouse_x - tier_left)/(card_width + card_spacing) in
+    Some (Card (tier, card))
+
+(* Check if user clicked on either card or gem. Return clicked *)
+let click mouse_x mouse_y =
+  let gem = gem_click mouse_x mouse_y in
+  (* If user didn't click on gem, check if they clicked on card,
+     else return gem click *)
+  if gem = None then card_click mouse_x mouse_y
+  else gem
 
 
 (*************************************)
@@ -256,22 +312,25 @@ let draw state =
   ()
 
 
-(* (* Check if user clicked on gem. Returns Some color of gem clicked, or None *)
-let gem_click mouse_x mouse_y =
-  if mouse_x < 10 || mouse_x > 70 then None else
-    if mouse_x <
 
-Take status, return string of what happened
-let what_happened status =
-  let mouse_x = status.mouse_x
-  let mouse_y = status.mouse_y
-  (* Check if user clicked on gem *)
-  let gem_click =
- *)
-
-(*
-let play state =
+(* Check if clicking works *)
+let rec run state =
   draw state;
-  let rec repl =
-    let s = wait_next_event [Button_down] in
- *)
+  let deets = wait_next_event[Button_down] in
+  let mouse_x = deets.mouse_x in
+  let mouse_y = deets.mouse_y in
+  let result = click mouse_x mouse_y in
+  let str =  match result with
+    | None    -> "None"
+    | Some x  ->
+        match x with
+        | Green_gem -> "Green"
+        | White_gem -> "White"
+        | Blue_gem  -> "Blue"
+        | Black_gem -> "Black"
+        | Red_gem   -> "Red"
+        | Gold_gem  -> "Gold"
+        | Card (m,n)  -> (string_of_int m) ^ ", " ^ (string_of_int n)
+  in print_string str; print_newline ();
+  run state
+
