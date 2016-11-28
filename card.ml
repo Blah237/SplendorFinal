@@ -11,7 +11,6 @@ type gems = {
 	black : int;
 	green : int;
 	white : int;
-	gold: int;
 }
 
 type card = {
@@ -27,7 +26,7 @@ type card = {
 type noble = gems
 
 type player_type =
-| Ai
+| Ai of color list
 | Human
 
 (** a player stores all of the necessary information about what a player has
@@ -44,8 +43,10 @@ type player = {
 		 * at the end of a game *)
 	points : int;
 		(** The number of points the player has *)
-	player_type : player_type
+	player_type : player_type;
 		(** indicates whether the player is an ai or a human *)
+	gold : int;
+	  (* number of gold coins held by the player *)
 }
 
 (** the possible moves a player can make *)
@@ -60,14 +61,14 @@ type move =
 	(** reserve a card *)
 | Top of int
 	(** reserve the top card of a certain deck tier *)
+| Pass 
+	(** used by ai to pass, since taking gold is too complicated to handle *)
 
 (** A state stores all of the information required in a game of Splendor and
 * is constantly updated as the game progresses *)
 type state = {
 	players : player list;
 		(** a list of the players playing the game *)
-	current_player : player;
-		(** the player whose current turn it is *)
 	tier1_deck : card list;
 	tier2_deck : card list;
 	tier3_deck : card list;
@@ -83,6 +84,8 @@ type state = {
 	gem_piles : int;
 	(** used for checking how many gems a player can/must take if there are
 	less than three piles *)
-	turns_taken : int
+	turns_taken : int;
 	(** used for ai behavior *)
+	gold : int;
+	(** the number of gold coins available **)
 }
