@@ -15,16 +15,31 @@ let gold   = rgb 218 165 32
 let grey   = rgb 160 160 160
 let silver = rgb 192 192 192
 
-(* Window size *)
-let height = 480
-let width = 680
+(* Window Size *)
+let height = 680
+let width = 920
 
 (* Card Dimensions *)
 let card_height = 115
 let card_width = 80
-let card_spacing = 10
 let noble_height = 80
 let noble_width = 80
+
+(* Gem Info *)
+let left_buffer = 40 (* Space between gems and left edge *)
+let top_buffer = 50  (* Space between gems and top *)
+let gem_buffer = 75  (* Space between gems themselves *)
+let gem_radius = 30  (* Gem radius *)
+
+(* Tier Info *)
+let tier_left = 120       (* Space between cards and left edge *)
+let tier_top = top_buffer (* Space between cards and top *)
+let card_spacing = 10     (* Space between cards *)
+
+(* Deck Info *)
+let deck_height = card_height
+let deck_width  = 20
+let deck_left = 85
 
 (* [create_graph] creates a blank graph with grey background *)
 let create_graph height width =
@@ -37,10 +52,10 @@ let create_graph height width =
 
 (* [draw_gems state] draws the all remaining gems in [state] *)
 let draw_gems state =
-  let left = 40 in (* Left padding *)
-  let radius = 30 in (* Radius of circle *)
-  let buffer = 75 in (* Space between circles *)
-  let top = height - 50 in (* Top padding *)
+  let left = left_buffer in (* Left padding *)
+  let radius = gem_radius in (* Radius of circle *)
+  let buffer = gem_buffer in (* Space between circles *)
+  let top = height - top_buffer in (* Top padding *)
   (* Draws circle of color [color], text color [text], gem [gem], order [num] *)
   let draw_circle gem color text num =
     if gem = 0 then begin (* Don't draw circle if no gems are left *)
@@ -147,35 +162,57 @@ let rec draw_each lst order =
 
 (* [draw_cards state] draws all open cards *)
 let draw_cards state =
-  draw_tier state.tier1    120 (50 + 0*(card_height + card_spacing));
-  draw_tier state.tier2    120 (50 + 1*(card_height + card_spacing));
-  draw_tier state.tier3    120 (50 + 2*(card_height + card_spacing));
-  draw_nobles state.nobles (135 + 4*(card_width + card_spacing)) 50 ;
+  let big_space = card_height + card_spacing in
+  let top = height - tier_top in
+  let bottom = top - 3*big_space in
+  draw_tier state.tier1 tier_left (bottom + 0*big_space);
+  draw_tier state.tier2 tier_left (bottom + 1*big_space);
+  draw_tier state.tier3 tier_left (bottom + 2*big_space);
+  draw_nobles state.nobles (tier_left + 3*big_space) bottom ;
   ()
 
 (* [draw_decks] draws the remaining number of cards per deck *)
 let draw_decks state =
+  let big_space = deck_height + card_spacing in
+  let top = height - tier_top in
+  let bottom = top - 3*big_space in
+  let left = deck_left in
   let deck1 = List.length state.tier1_deck in
   let deck2 = List.length state.tier2_deck in
   let deck3 = List.length state.tier3_deck in
-  (* Draw circle 1 *)
-  set_color silver;
-  fill_rect 85 50 20 card_height;
-  set_color black;
-  moveto 93 (45 + card_height/2);
-  draw_string (string_of_int deck1);
-  (* Draw circle 2 *)
-  set_color silver;
-  fill_rect 85 (50 + card_height + card_spacing) 20 card_height;
-  set_color black;
-  moveto 93 (45 + card_height + card_spacing + card_height/2);
-  draw_string (string_of_int deck2);
-  (* Draw circle 3 *)
-  set_color silver;
-  fill_rect 85 (50 + 2*card_height + 2*card_spacing) 20 card_height;
-  set_color black;
-  moveto 93 (45 + 2*card_height + 2*card_spacing + card_height/2);
-  draw_string (string_of_int deck3);
+  (* Draw deck 1 *)
+  let () = if deck1 = 0 then begin
+    set_color grey;
+    fill_rect left bottom deck_width deck_height;
+  end else begin
+    set_color silver;
+    fill_rect left bottom deck_width deck_height;
+    set_color black;
+    moveto (left + deck_width/2 - 2) (bottom + big_space/2 - 5);
+    draw_string (string_of_int deck1); ()
+  end in
+  (* Draw deck 2 *)
+  let () = if deck2 = 0 then begin
+    set_color grey;
+    fill_rect left (bottom + big_space) deck_width deck_height;
+  end else begin
+    set_color silver;
+    fill_rect left (bottom + big_space) deck_width deck_height;
+    set_color black;
+    moveto (left + deck_width/2 - 2) (bottom + big_space + big_space/2 - 5);
+    draw_string (string_of_int deck2);
+  end in
+  (* Draw deck 3 *)
+  let () = if deck3 = 0 then begin
+    set_color grey;
+    fill_rect left (bottom + 2*big_space) deck_width deck_height;
+  end else begin
+    set_color silver;
+    fill_rect left (bottom + 2*big_space) deck_width deck_height;
+    set_color black;
+    moveto (left + deck_width/2 - 2) (bottom + 2*big_space + big_space/2 - 5);
+    draw_string (string_of_int deck3);
+  end in
   ()
 
 
@@ -185,7 +222,7 @@ let draw_decks state =
 (*************************************)
 
 let no_gems = {red=0;blue=0;black=0;green=0;white=0;}
-let some_gems = {red=1;blue=2;black=0;green=4;white=3;}
+let some_gems = {red=1;blue=2;black=3;green=4;white=3;}
 let gems1 = {red=3; blue=4; black=0; green=5; white=1;}
 let gems2 = {red=2; blue=0; black=0; green=7; white=3;}
 let gems3 = {red=0; blue=2; black=3; green=2; white=2;}
@@ -196,12 +233,11 @@ let card3 = {color=White; points=2; gem_cost=gems3;}
 let card4 = {color=Blue ; points=6; gem_cost=gems4;}
 let card5 = {color=Red  ; points=4; gem_cost=gems1;}
 
-
 let state = {
   players = [];
   tier1_deck = [card1; card2; card1; card4; card2; card5];
-  tier2_deck = [card1; card1; card1];
-  tier3_deck = [card2; card2; card2];
+  tier2_deck = [card1; card1; card1; card2;];
+  tier3_deck = [card1; card1; card2;];
   tier1 = [card5; card2; card3; card4];
   tier2 = [card1; card4; card5; card2];
   tier3 = [card4; card2; card1; card3];
@@ -234,7 +270,6 @@ let what_happened status =
  *)
 
 (*
-
 let play state =
   draw state;
   let rec repl =
