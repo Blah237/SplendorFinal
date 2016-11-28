@@ -1,3 +1,9 @@
+(** CITATIONS:
+
+The website below was relied on heavily to write the sublust function:
+*http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
+
+
 open Card
 
 let rec gather_colors_red deck= 
@@ -458,3 +464,44 @@ let determine_move s =
 	else
 		if s.turns_taken <= 20 then determine_early_move s current_player
 		else determine_late_move s current_player
+
+let take_three_gems_helper_helper ai three =
+	match ai.player_type with
+	| Human -> failwith "wrong player type"
+	| Ai thelist -> match three with 
+					| Three (g1, Some g2, Some g3) -> thelist @ [g3;g2;g1]
+					| Three (g1, Some g2, None) -> thelist @ [g2;g1]
+					| Three (g1, None, None) -> thelist @ [g1]
+					| _ -> failwith "Wrong move"
+(** I wrote this function after looking at the following page on Stack Overflow:
+* http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
+let rec sublist start theend thelist = 
+  match thelist with
+  | [] -> failwith "range too large"
+  | hd::tl -> 
+     let thetail = if theend = 0 then [] else 
+     	sublist (start-1) (theend-1) tl in
+     if start > 0 then thetail else hd::thetail
+
+let take_three_gems_helper ai three = 
+	let new_list = take_three_gems_helper_helper ai three in
+	let corrected = if List.length new_list >= 50 then 
+	sublist 0 46 new_list else new_list in
+	{gems_held = ai.gems_held;
+	discounts = ai.discounts;
+	reserved = ai.reserved;
+	bought = ai.bought;
+	points = ai.points;
+	player_type = Ai corrected;
+	gold = ai.gold}
+
+let determine_discard s = 
+	let current_player = List.hd s.players in
+	match current_player.player_type with
+	| Human -> failwith "Wrong player type for call"
+	| Ai thelist -> let thesize = List.length thelist in
+					let correctedsize = thesize - 1 in
+					List.nth thelist correctedsize
+
+
+

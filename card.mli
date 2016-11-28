@@ -26,7 +26,7 @@ type card = {
 type noble = gems
 
 type player_type =
-| Ai
+| Ai of color list
 | Human
 
 (** a player stores all of the necessary information about what a player has
