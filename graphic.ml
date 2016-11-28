@@ -43,18 +43,23 @@ let draw_gems state =
   let top = height - 50 in (* Top padding *)
   (* Draws circle of color [color], text color [text], gem [gem], order [num] *)
   let draw_circle gem color text num =
-    set_color color;
-    fill_circle left (top - num*buffer) radius;
-    moveto (left - 2) (top - num*buffer - 5);
-    set_color text;
-    draw_string (string_of_int gem);
-    () in
+    if gem = 0 then begin (* Don't draw circle if no gems are left *)
+      set_color grey;
+      fill_circle left (top - num*buffer) radius;
+      () end
+    else begin
+      set_color color;
+      fill_circle left (top - num*buffer) radius;
+      moveto (left - 2) (top - num*buffer - 5);
+      set_color text;
+      draw_string (string_of_int gem);
+      () end in
   draw_circle state.available_gems.green green black 0;
   draw_circle state.available_gems.white white black 1;
   draw_circle state.available_gems.blue  blue  white 2;
   draw_circle state.available_gems.black black white 3;
   draw_circle state.available_gems.red   red   black 4;
-  draw_circle state.available_gems.gold  gold  black 5;
+  draw_circle state.gold                 gold  black 5;
   ()
 
 (* [draw_card] draws [card] at location [x],[y].
@@ -174,12 +179,17 @@ let draw_decks state =
   ()
 
 
-let no_gems = {red=0;blue=0;black=0;green=0;white=0;gold=0;}
-let some_gems = {red=1;blue=2;black=3;green=4;white=3;gold=6;}
-let gems1 = {red=3; blue=4; black=0; green=5; white=1; gold=0;}
-let gems2 = {red=2; blue=0; black=0; green=7; white=3; gold=0;}
-let gems3 = {red=0; blue=2; black=3; green=2; white=2; gold=0;}
-let gems4 = {red=2; blue=1; black=1; green=1; white=3; gold=0;}
+
+(*************************************)
+(***********    Testing    ***********)
+(*************************************)
+
+let no_gems = {red=0;blue=0;black=0;green=0;white=0;}
+let some_gems = {red=1;blue=2;black=0;green=4;white=3;}
+let gems1 = {red=3; blue=4; black=0; green=5; white=1;}
+let gems2 = {red=2; blue=0; black=0; green=7; white=3;}
+let gems3 = {red=0; blue=2; black=3; green=2; white=2;}
+let gems4 = {red=2; blue=1; black=1; green=1; white=3;}
 let card1 = {color=Black; points=3; gem_cost=gems3;}
 let card2 = {color=Green; points=4; gem_cost=gems2;}
 let card3 = {color=White; points=2; gem_cost=gems3;}
@@ -189,7 +199,6 @@ let card5 = {color=Red  ; points=4; gem_cost=gems1;}
 
 let state = {
   players = [];
-  current_player = {gems_held=no_gems;discounts=no_gems;reserved=[];bought=0;points=0;player_type=Human};
   tier1_deck = [card1; card2; card1; card4; card2; card5];
   tier2_deck = [card1; card1; card1];
   tier3_deck = [card2; card2; card2];
@@ -200,6 +209,7 @@ let state = {
   available_gems = some_gems;
   gem_piles = 0;
   turns_taken = 0;
+  gold = 6;
 }
 
 let draw state =
@@ -208,3 +218,25 @@ let draw state =
   draw_cards state;
   draw_decks state;
   ()
+
+
+(* (* Check if user clicked on gem. Returns Some color of gem clicked, or None *)
+let gem_click mouse_x mouse_y =
+  if mouse_x < 10 || mouse_x > 70 then None else
+    if mouse_x <
+
+Take status, return string of what happened
+let what_happened status =
+  let mouse_x = status.mouse_x
+  let mouse_y = status.mouse_y
+  (* Check if user clicked on gem *)
+  let gem_click =
+ *)
+
+(*
+
+let play state =
+  draw state;
+  let rec repl =
+    let s = wait_next_event [Button_down] in
+ *)
