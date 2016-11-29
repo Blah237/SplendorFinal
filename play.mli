@@ -9,7 +9,7 @@ val buy_card : player -> state -> card -> state option
 
 (**[take_three_gems p state g1 g2 g3] returns the state after [p] takes three gems, or
 * less if taking three gems is not possible *)
-val take_three_gems : player -> state -> color -> color option -> color option -> state option
+val take_three_gems : player -> state -> color -> color option -> color option -> state * string
 
 (** [take_two_gems p state gem] returns the state after [p] takes two gems,
 * or [None] if the move is illegal *)
@@ -32,4 +32,5 @@ val end_game : player -> state -> int -> state
 
 (** [play s m] is the main function that plays the game, and returns the state
 * after the current player makes move [m] *)
-val play : state -> move -> state
+val play : state -> move -> state * string
+
