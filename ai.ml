@@ -1,10 +1,73 @@
 (** CITATIONS:
 
-The website below was relied on heavily to write the sublust function:
+The website below was relied on heavily to write the sublist function:
 *http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
 
-
 open Card
+
+(********* GENERAL USE FUNCTIONS BELOW *********)
+
+let rec sum_list thelist acc =
+	match thelist with
+	| [] -> acc 
+	| hd::tl -> let new_acc = acc + hd in
+				sum_list tl new_acc
+
+(** I wrote this function after looking at the following page on Stack Overflow:
+* http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
+let rec sublist start theend thelist = 
+  match thelist with
+  | [] -> failwith "range too large"
+  | hd::tl -> 
+     let thetail = if theend = 0 then [] else 
+     	sublist (start-1) (theend-1) tl in
+     if start > 0 then thetail else hd::thetail
+
+(******* GENERAL USE AI-SPECIFIC FUNCTIONS BELOW *********)
+
+(** make a list from a record of gems *)
+let make_list_of_record thegems = 
+	let thered = thegems.red in
+	let theblue = thegems.blue in
+	let theblack = thegems.black in
+	let thegreen = thegems.green in
+	let thewhite = thegems.white in
+	[thered;theblue;theblack;thegreen;thewhite]
+
+(** determine the remaining cost of a card given the ai's current 
+ * discounts and gems *)
+let cost_remaining ai c : gems = 
+	let red_cost = c.gem_cost.red - ai.gems_held.red - ai.discounts.red in
+	let blue_cost = c.gem_cost.blue - ai.gems_held.blue  - ai.discounts.blue in
+	let green_cost = c.gem_cost.green - ai.gems_held.green 
+	- ai.discounts.green in
+	let black_cost = c.gem_cost.black - ai.gems_held.white 
+	- ai.discounts.white in
+	let white_cost = c.gem_cost.white - ai.gems_held.white  -
+    ai.discounts.black in
+	{red = red_cost;
+	blue = blue_cost;
+	black = black_cost;
+	green = green_cost;
+	white = white_cost}
+
+(** totals the cost of a single card*)
+let total_cost c = 
+	c.gem_cost.red +
+	c.gem_cost.blue +
+	c.gem_cost.green +
+	c.gem_cost.black +
+	c.gem_cost.white
+
+(** totals the number of gems in a single record of gems*)
+let total_cost_gems thegems = 
+	thegems.red +
+	thegems.blue +
+	thegems.green +
+	thegems.black +
+	thegems.white
+
+(********* DETERMINE DOMINANT COLOR FUNCTIONS BELOW ***********)
 
 let rec gather_colors_red deck= 
 	match deck with 
@@ -30,29 +93,6 @@ let rec gather_colors_white deck=
 	match deck with 
 	| [] -> 0
 	| hd::tl -> hd.gem_cost.white + gather_colors_white tl
-
-let make_list_of_record thegems = 
-	let thered = thegems.red in
-	let theblue = thegems.blue in
-	let theblack = thegems.black in
-	let thegreen = thegems.green in
-	let thewhite = thegems.white in
-	[thered;theblue;theblack;thegreen;thewhite]
-
-let cost_remaining ai c : gems = 
-	let red_cost = c.gem_cost.red - ai.gems_held.red - ai.discounts.red in
-	let blue_cost = c.gem_cost.blue - ai.gems_held.blue  - ai.discounts.blue in
-	let green_cost = c.gem_cost.green - ai.gems_held.green 
-	- ai.discounts.green in
-	let black_cost = c.gem_cost.black - ai.gems_held.white 
-	- ai.discounts.white in
-	let white_cost = c.gem_cost.white - ai.gems_held.white  -
-    ai.discounts.black in
-	{red = red_cost;
-	blue = blue_cost;
-	black = black_cost;
-	green = green_cost;
-	white = white_cost}
 
 (** determine the dominant colors on the board*)
 let determine_domininant_color s = 
@@ -107,21 +147,7 @@ let determine_domininant_color s =
 				White) in
 	[first;second;third;fourth;fifth]
 
-(** totals the cost of a single card*)
-let total_cost c = 
-	c.gem_cost.red +
-	c.gem_cost.blue +
-	c.gem_cost.green +
-	c.gem_cost.black +
-	c.gem_cost.white
-
-(** totals the number of gems in a single record of gems*)
-let total_cost_gems thegems = 
-	thegems.red +
-	thegems.blue +
-	thegems.green +
-	thegems.black +
-	thegems.white
+(****** DETERMINE GOAL HELPER FUNCTIONS ******)
 
 let rec get_color_from_tier color acc tier = 
 	match tier with
@@ -155,6 +181,8 @@ let rec order_list coloredlist orderedcostlist ai acc =
 			  	let new_coloredlist = tl @ [hd] in
 			  	order_list new_coloredlist orderedcostlist ai acc
 
+(********* DETERMINE EARLY GOAL FUNCTIONS ***********)
+
 (** get the goals of a specific color from a list of cards*)
 let get_ordered_color_list_from_tier color tier ai = 
 	let colorlist = get_color_from_tier color [] tier in
@@ -184,6 +212,9 @@ let rec determine_early_goal s ai colorlist acc =
 		| White -> let thelist = get_ordered_color_list_from_tier White s.tier1 ai in
 				   let new_acc = acc @ thelist in
 				   determine_early_goal s ai tl new_acc)
+
+
+(***** DETERMINE GEM GOAL FUNCTIONS ******)
 
 let rec remove_zero_costs costlist acc = 
 	match costlist with
@@ -233,12 +264,19 @@ let rec determine_gem_goal ai clist acc =
 		let new_acc = acc @ thelist in
 		determine_gem_goal ai tl new_acc
 
+(**** PURCHASE CARDS HELPER FUNCTIONS ****)
+
+(** returns [true] if a card is purchasable with the ai's current gems, and 
+* [false] if not *)
 let is_purchasable ai c = 
 	let remainingcost = cost_remaining ai c in
 	let pairs = make_paired_list remainingcost in
 	let no_zeroes = remove_zero_costs pairs [] in
 	if List.length no_zeroes = 0 then true else false
 
+(** returns [Some Buy card] where card is the first card in the list of goals
+ * that the ai can purcahse, and [None] if no card in the goals list is 
+ * purchasable *)
 let rec try_purchase_all ai orderedgoals = 
 	match orderedgoals with
 	| [] -> None
@@ -246,11 +284,7 @@ let rec try_purchase_all ai orderedgoals =
 				let the_move = Buy hd in Some the_move
 				else try_purchase_all ai tl
 
-let rec sum_list thelist acc =
-	match thelist with
-	| [] -> acc 
-	| hd::tl -> let new_acc = acc + hd in
-				sum_list tl new_acc
+(****** GEM MOVE FUNCTIONS ******)
 
 let rec gem_piles_1 thegemspairedlist = 
 	match thegemspairedlist with
@@ -280,7 +314,8 @@ let rec gem_piles_3 thegemspairedlist acc =
 				   let new_acc = a::acc in
 				   gem_piles_3 tl new_acc
 
-
+(** determines ai behavior for a non-edge case "take three gems" move, where 
+* it does not have 8 or more gems and there at least 4 gem piles remaining *)
 let rec normal_gem_move available gemgoals acc =
 	if List.length acc = 3 then 
 	let thefirst = List.nth acc 0 in
@@ -346,11 +381,35 @@ let rec normal_gem_move available gemgoals acc =
 								  normal_gem_move new_available tl new_acc
                else normal_gem_move available tl acc))
 
+(*** FINAL MOVE DETERMINATION FUNCTIONS *****)
+
+(** determines whether a card can be bought if the ai could take an infinite 
+* number of turns, bar reserving *)
+let is_feasible s ai c = 
+	let remainingcost = cost_remaining ai c in
+	let possible_cost = 
+	{red = remainingcost.red - s.available_gems.red;
+	 blue = remainingcost.blue - s.available_gems.blue;
+	 black = remainingcost.black - s.available_gems.black;
+	 green = remainingcost.green - s.available_gems.green;
+	 white = remainingcost.white - s.available_gems.white} in
+	let totalgemcost = total_cost_gems possible_cost in
+	if totalgemcost <= 0 then true else false
+
+(** removes all non-feasible cards from a list of cards *)
+let rec remove_not_feasible s clist ai acc = 
+	match clist with
+	| [] -> acc
+	| hd::tl -> if is_feasible s ai hd then 
+				let new_acc = acc @ [hd] in
+				remove_not_feasible s tl ai new_acc
+
 (** determines the move an ai should make in the early game, using dominant
 * colors and only looking at tier 1*)
 let determine_early_move s ai = 
 	let dominants = determine_domininant_color s in
-	let early_goal = determine_early_goal s ai dominants [] in
+	let pre_early_goal = determine_early_goal s ai dominants [] in
+	let early_goal = remove_not_feasible s pre_early_goal ai [] in
 	let primary_goal = List.hd early_goal in
 	let basic_list_of_gems = make_list_of_record ai.gems_held in
 	let total_ai_gems = sum_list basic_list_of_gems 0 in
@@ -385,18 +444,7 @@ let rec get_number (points : int) (board : card list) (acc : card list)
 				get_number points tl new_acc
 				else get_number points tl acc
 
-let is_feasible s ai c = 
-	let remainingcost = cost_remaining ai c in
-	let possible_cost = 
-	{red = remainingcost.red - s.available_gems.red;
-	 blue = remainingcost.blue - s.available_gems.blue;
-	 black = remainingcost.black - s.available_gems.black;
-	 green = remainingcost.green - s.available_gems.green;
-	 white = remainingcost.white - s.available_gems.white} in
-	let totalgemcost = total_cost_gems possible_cost in
-	if totalgemcost <= 0 then true else false
-
-
+(** determines the list of goals (of cards) for the late game*)
 let determine_late_goal s ai =
 	let board = s.tier1 @ s.tier2 @ s.tier3 in
 	let number_5 = get_number 5 board [] in
@@ -426,8 +474,12 @@ let determine_late_goal s ai =
 	let goal1 = order_list number_1 correct1 ai [] in
 	goal5 @ goal4 @ goal3 @ goal2 @ goal1
 
+(** Determines the move an ai should make in the late game. The ai will 
+* seek to the highest point value card that is feasible based on the 
+* current board state. *)
 let determine_late_move s ai = 
-	let late_goal = determine_late_goal s ai in
+	let pre_late_goal = determine_late_goal s ai in
+	let late_goal = remove_not_feasible s pre_late_goal ai []
 	let primary_goal = List.hd late_goal in
 	let basic_list_of_gems = make_list_of_record ai.gems_held in
 	let total_ai_gems = sum_list basic_list_of_gems 0 in
@@ -465,6 +517,8 @@ let determine_move s =
 		if s.turns_taken <= 20 then determine_early_move s current_player
 		else determine_late_move s current_player
 
+
+(**** DISCARD GEMS FUNCTIONS ****)
 let take_three_gems_helper_helper ai three =
 	match ai.player_type with
 	| Human -> failwith "wrong player type"
@@ -473,15 +527,6 @@ let take_three_gems_helper_helper ai three =
 					| Three (g1, Some g2, None) -> thelist @ [g2;g1]
 					| Three (g1, None, None) -> thelist @ [g1]
 					| _ -> failwith "Wrong move"
-(** I wrote this function after looking at the following page on Stack Overflow:
-* http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
-let rec sublist start theend thelist = 
-  match thelist with
-  | [] -> failwith "range too large"
-  | hd::tl -> 
-     let thetail = if theend = 0 then [] else 
-     	sublist (start-1) (theend-1) tl in
-     if start > 0 then thetail else hd::thetail
 
 let take_three_gems_helper ai three = 
 	let new_list = take_three_gems_helper_helper ai three in
