@@ -958,7 +958,6 @@ let init_state num_human num_ai =
 }
 
 let buy_card p s c =
-(**************** MUST HANDLE CASE WHERE CARD IS A RESERVED CARD *************************)
   (* need to see which pile this card belongs to *)
   (* First Checking if they can afford the card *)
 	match can_buy p c with
@@ -1045,7 +1044,7 @@ let buy_card p s c =
 				 gold = s.gold + g;
 				 (** the number of gold coins available **)
 			 }
-		 else
+		 else if exists c s.tier3 then
 			 let (deck,table) = refresh_cards s.tier3_deck s.tier3 c in
 			 let new_p_list = List.tl s.players @ [updated_player] in
 			 Some {
@@ -1071,6 +1070,40 @@ let buy_card p s c =
 				 gold = s.gold + g;
 				 (** the number of gold coins available **)
 			 }
+		else (* Case of buying a reserved card, not from the board *)
+			let new_player = {
+			 gems_held = updated_player.gems_held;
+			 discounts = updated_player.discounts;
+			 points = updated_player.points;
+			 bought = updated_player.bought;
+			 gold = updated_player.gold;
+			 player_type = p.player_type;
+			 reserved = remove c p.reserved;
+			 }
+			in let new_p_list = List.tl s.players @ [new_player] in
+			Some {
+				 players = new_p_list;
+					 (** a list of the players playing the game *)
+				 tier1_deck = s.tier1_deck;
+				 tier2_deck = s.tier2_deck;
+				 tier3_deck = s.tier3_deck;
+					 (** the cards remaining in the decks of cards, seperated by tier *)
+				 tier1 = s.tier1;
+				 tier2 = s.tier2;
+				 tier3 = s.tier3;
+					 (** the cards available, seperated by tier *)
+				 nobles = s.nobles;
+					 (** the nobles currently available *)
+				 available_gems = table_gems;
+					 (** the gems currently available for taking *)
+				 gem_piles = calc_gem_piles s.available_gems;
+				 (** used for checking how many gems a player can/must take if there are
+				 less than three piles *)
+				 turns_taken = s.turns_taken + 1;
+				 (** used for ai behavior *)
+				 gold = s.gold + g;
+				 (** the number of gold coins available **)
+			 }
 	| _ -> None
 
 (* returns the value inside an option *)
@@ -1079,8 +1112,15 @@ let get x =
 	| Some(y) -> y
 
 let take_three_gems p s g1 g2 g3 =
-(************** MUST ENSURE THAT COLORS ARE DIFFERENT *********************)
-(************** 10 gems *********************)
+(************** case of >10 gems *********************)
+	let same_color = 
+	match (g1,g2,g3) with
+	| (x,Some(y),Some(z)) -> if x = y || y = z || x = z then true else false
+	| (x,None,Some(z)) -> if x = z then true else false
+	| (x,Some(y),None) -> if x = y then true else false
+	| _ -> false
+	in if same_color then (s, "Illegal move. You cannot pick three gems if two or more are the same color.")
+	else
 	let tup = 
 	match g1 with
 	| Red ->
@@ -1100,7 +1140,8 @@ let take_three_gems p s g1 g2 g3 =
 		if s.available_gems.white < 1 then None
 	    else Some (take_gem 1 White p s.available_gems)
 	in
-	if tup = None then None else 
+	if tup = None then (s, "Illegal move. One of the colors you selected has no gems available.") 
+	else 
 	let tup = get tup in
 	let tup2 = 
 	match g2 with 
@@ -1122,7 +1163,8 @@ let take_three_gems p s g1 g2 g3 =
 	    else Some (take_gem 1 White (fst tup) (snd tup))
 	| None -> Some tup
 	in
-	if tup2 = None then None else
+	if tup2 = None then (s,"Illegal move. One of the colors you selected has no gems available.")
+	else
 	let tup2 = get tup2 in 
 	let tup3 = 
 	match g3 with 
@@ -1145,8 +1187,8 @@ let take_three_gems p s g1 g2 g3 =
 	| None -> Some tup2
 	in
 	match tup3 with
-	| Some(p, g) ->
-					Some {players = List.tl s.players @ [p];
+	| Some(p, g) -> let new_state = 
+					{players = List.tl s.players @ [p];
 						(** a list of the players playing the game *)
 					tier1_deck = s.tier1_deck;
 					tier2_deck = s.tier2_deck;
@@ -1168,7 +1210,8 @@ let take_three_gems p s g1 g2 g3 =
 					gold = s.gold;
 					(** the number of gold coins available **)
 				}
-	| None -> None 
+			in (new_state, "")
+	| None -> (s, "Illegal move. One of the colors you selected has no gems available.")
 
 let take_two_gems p s gem =
 (**************** Needs to check if player has > 10 gems ********************)
@@ -1430,14 +1473,47 @@ let rec end_game p s turns =
 let rec play s m =
 	match m with
 	| Three (x, y, z) ->
-	   get (take_three_gems (List.hd s.players) s x y z)
+	   take_three_gems (List.hd s.players) s x y z
 	| Two (x) ->
 	   let ret_val = take_two_gems (List.hd s.players) s x in
-		 if ret_val != None then (get ret_val) else s
+		 if ret_val = None then 
+		 (s, "Illegal move. There are not 4 of this color gem in the pile.")
+		 else ((get ret_val), "")
 	| Buy(x) ->
 	   let ret_val = buy_card (List.hd s.players) s x in
-		 if ret_val != None then (get ret_val) else s 
+		 if ret_val = None then 
+		 (s, "Illegal move. You do not have enough gems to buy this card.")
+		 else ((get ret_val), "")
 	| Reserve(x) ->
-	   get (reserve_card (List.hd s.players) s x)
+	   let ret_val = reserve_card (List.hd s.players) s x in 
+	   	 if ret_val = None then 
+		 (s, "Illegal move. You cannot have more than 3 cards reserved at a time.")
+		 else ((get ret_val), "")
 	| Top(x) ->
-	   get (reserve_top (List.hd s.players) s x)
+	   let ret_val = reserve_top (List.hd s.players) s x in 
+	   	 if ret_val = None then 
+		 (s, "Illegal move. You cannot have more than 3 cards reserved at a time.")
+		 else ((get ret_val), "")
+ 	| Pass -> let st = {players = List.tl s.players @ [List.hd s.players];
+						(** a list of the players playing the game *)
+					tier1_deck = s.tier1_deck;
+					tier2_deck = s.tier2_deck;
+					tier3_deck = s.tier3_deck;
+						(** the cards remaining in the decks of cards, seperated by tier *)
+					tier1 = s.tier1;
+					tier2 = s.tier2;
+					tier3 = s.tier3;
+						(** the cards available, seperated by tier *)
+					nobles = s.nobles;
+						(** the nobles currently available *)
+					available_gems = s.available_gems;
+						(** the gems currently available for taking *)
+					gem_piles = s.gem_piles;
+					(** used for checking how many gems a player can/must take if there are
+					less than three piles *)
+					turns_taken = s.turns_taken + 1;
+					(** used for ai behavior *)
+					gold = s.gold;
+					(** the number of gold coins available **)
+				}
+			in (st, "")
