@@ -51,6 +51,22 @@ let cost_remaining ai c : gems =
 	green = green_cost;
 	white = white_cost}
 
+(** totals the cost of a single card*)
+let total_cost c = 
+	c.gem_cost.red +
+	c.gem_cost.blue +
+	c.gem_cost.green +
+	c.gem_cost.black +
+	c.gem_cost.white
+
+(** totals the number of gems in a single record of gems*)
+let total_cost_gems thegems = 
+	thegems.red +
+	thegems.blue +
+	thegems.green +
+	thegems.black +
+	thegems.white
+
 (** determines whether a card can be bought if the ai could take an infinite 
 * number of turns, bar reserving *)
 let is_feasible s ai c = 
@@ -71,22 +87,7 @@ let rec remove_not_feasible s clist ai acc =
 	| hd::tl -> if is_feasible s ai hd then 
 				let new_acc = acc @ [hd] in
 				remove_not_feasible s tl ai new_acc
-
-(** totals the cost of a single card*)
-let total_cost c = 
-	c.gem_cost.red +
-	c.gem_cost.blue +
-	c.gem_cost.green +
-	c.gem_cost.black +
-	c.gem_cost.white
-
-(** totals the number of gems in a single record of gems*)
-let total_cost_gems thegems = 
-	thegems.red +
-	thegems.blue +
-	thegems.green +
-	thegems.black +
-	thegems.white
+				else remove_not_feasible s tl ai acc 
 
 (********* DETERMINE DOMINANT COLOR FUNCTIONS BELOW ***********)
 
@@ -483,7 +484,7 @@ let determine_early_move s ai =
 * current board state. *)
 let determine_late_move s ai = 
 	let pre_late_goal = determine_late_goal s ai in
-	let late_goal = remove_not_feasible s pre_late_goal ai []
+	let late_goal = remove_not_feasible s pre_late_goal ai [] in
 	let primary_goal = List.hd late_goal in
 	let basic_list_of_gems = make_list_of_record ai.gems_held in
 	let total_ai_gems = sum_list basic_list_of_gems 0 in
