@@ -51,6 +51,27 @@ let cost_remaining ai c : gems =
 	green = green_cost;
 	white = white_cost}
 
+(** determines whether a card can be bought if the ai could take an infinite 
+* number of turns, bar reserving *)
+let is_feasible s ai c = 
+	let remainingcost = cost_remaining ai c in
+	let possible_cost = 
+	{red = remainingcost.red - s.available_gems.red;
+	 blue = remainingcost.blue - s.available_gems.blue;
+	 black = remainingcost.black - s.available_gems.black;
+	 green = remainingcost.green - s.available_gems.green;
+	 white = remainingcost.white - s.available_gems.white} in
+	let totalgemcost = total_cost_gems possible_cost in
+	if totalgemcost <= 0 then true else false
+
+(** removes all non-feasible cards from a list of cards *)
+let rec remove_not_feasible s clist ai acc = 
+	match clist with
+	| [] -> acc
+	| hd::tl -> if is_feasible s ai hd then 
+				let new_acc = acc @ [hd] in
+				remove_not_feasible s tl ai new_acc
+
 (** totals the cost of a single card*)
 let total_cost c = 
 	c.gem_cost.red +
@@ -212,6 +233,49 @@ let rec determine_early_goal s ai colorlist acc =
 		| White -> let thelist = get_ordered_color_list_from_tier White s.tier1 ai in
 				   let new_acc = acc @ thelist in
 				   determine_early_goal s ai tl new_acc)
+
+
+(*** DETERMINE LATE GOAL FUNCTIONS ***)
+
+(** get cards of a certain point value from the board*)
+let rec get_number (points : int) (board : card list) (acc : card list) 
+: card list =
+	match board with
+	| [] -> acc
+	| hd::tl -> if hd.points = points then 
+				let new_acc = hd::acc in
+				get_number points tl new_acc
+				else get_number points tl acc
+
+(** determines the list of goals (of cards) for the late game*)
+let determine_late_goal s ai =
+	let board = s.tier1 @ s.tier2 @ s.tier3 in
+	let number_5 = get_number 5 board [] in
+	let number_4 = get_number 4 board [] in
+	let number_3 = get_number 3 board [] in
+	let number_2 = get_number 2 board [] in
+	let number_1 = get_number 1 board [] in
+	let costlist_5 = get_costs number_5 ai [] in
+	let costlist_4 = get_costs number_4 ai [] in
+	let costlist_3 = get_costs number_3 ai [] in
+	let costlist_2 = get_costs number_2 ai [] in
+	let costlist_1 = get_costs number_1 ai [] in
+	let orderedcostlist_5 = List.sort compare costlist_5 in
+	let orderedcostlist_4 = List.sort compare costlist_4 in
+	let orderedcostlist_3 = List.sort compare costlist_3 in
+	let orderedcostlist_2 = List.sort compare costlist_2 in
+	let orderedcostlist_1 = List.sort compare costlist_1 in
+	let correct5 = List.rev orderedcostlist_5 in
+	let correct4 = List.rev orderedcostlist_4 in
+	let correct3 = List.rev orderedcostlist_3 in
+	let correct2 = List.rev orderedcostlist_2 in
+	let correct1 = List.rev orderedcostlist_1 in
+	let goal5 = order_list number_5 correct5 ai [] in
+	let goal4 = order_list number_4 correct4 ai [] in
+	let goal3 = order_list number_3 correct3 ai [] in
+	let goal2 = order_list number_2 correct2 ai [] in
+	let goal1 = order_list number_1 correct1 ai [] in
+	goal5 @ goal4 @ goal3 @ goal2 @ goal1
 
 
 (***** DETERMINE GEM GOAL FUNCTIONS ******)
@@ -381,28 +445,8 @@ let rec normal_gem_move available gemgoals acc =
 								  normal_gem_move new_available tl new_acc
                else normal_gem_move available tl acc))
 
-(*** FINAL MOVE DETERMINATION FUNCTIONS *****)
 
-(** determines whether a card can be bought if the ai could take an infinite 
-* number of turns, bar reserving *)
-let is_feasible s ai c = 
-	let remainingcost = cost_remaining ai c in
-	let possible_cost = 
-	{red = remainingcost.red - s.available_gems.red;
-	 blue = remainingcost.blue - s.available_gems.blue;
-	 black = remainingcost.black - s.available_gems.black;
-	 green = remainingcost.green - s.available_gems.green;
-	 white = remainingcost.white - s.available_gems.white} in
-	let totalgemcost = total_cost_gems possible_cost in
-	if totalgemcost <= 0 then true else false
-
-(** removes all non-feasible cards from a list of cards *)
-let rec remove_not_feasible s clist ai acc = 
-	match clist with
-	| [] -> acc
-	| hd::tl -> if is_feasible s ai hd then 
-				let new_acc = acc @ [hd] in
-				remove_not_feasible s tl ai new_acc
+(**** DETERMINE MOVE FUNCTIONS *****)
 
 (** determines the move an ai should make in the early game, using dominant
 * colors and only looking at tier 1*)
@@ -433,46 +477,6 @@ let determine_early_move s ai =
     else 
     	let thegemgoals = determine_gem_goal ai early_goal [] in
     		  normal_gem_move s.available_gems thegemgoals []
-
-(** get cards of a certain point value from the board*)
-let rec get_number (points : int) (board : card list) (acc : card list) 
-: card list =
-	match board with
-	| [] -> acc
-	| hd::tl -> if hd.points = points then 
-				let new_acc = hd::acc in
-				get_number points tl new_acc
-				else get_number points tl acc
-
-(** determines the list of goals (of cards) for the late game*)
-let determine_late_goal s ai =
-	let board = s.tier1 @ s.tier2 @ s.tier3 in
-	let number_5 = get_number 5 board [] in
-	let number_4 = get_number 4 board [] in
-	let number_3 = get_number 3 board [] in
-	let number_2 = get_number 2 board [] in
-	let number_1 = get_number 1 board [] in
-	let costlist_5 = get_costs number_5 ai [] in
-	let costlist_4 = get_costs number_4 ai [] in
-	let costlist_3 = get_costs number_3 ai [] in
-	let costlist_2 = get_costs number_2 ai [] in
-	let costlist_1 = get_costs number_1 ai [] in
-	let orderedcostlist_5 = List.sort compare costlist_5 in
-	let orderedcostlist_4 = List.sort compare costlist_4 in
-	let orderedcostlist_3 = List.sort compare costlist_3 in
-	let orderedcostlist_2 = List.sort compare costlist_2 in
-	let orderedcostlist_1 = List.sort compare costlist_1 in
-	let correct5 = List.rev orderedcostlist_5 in
-	let correct4 = List.rev orderedcostlist_4 in
-	let correct3 = List.rev orderedcostlist_3 in
-	let correct2 = List.rev orderedcostlist_2 in
-	let correct1 = List.rev orderedcostlist_1 in
-	let goal5 = order_list number_5 correct5 ai [] in
-	let goal4 = order_list number_4 correct4 ai [] in
-	let goal3 = order_list number_3 correct3 ai [] in
-	let goal2 = order_list number_2 correct2 ai [] in
-	let goal1 = order_list number_1 correct1 ai [] in
-	goal5 @ goal4 @ goal3 @ goal2 @ goal1
 
 (** Determines the move an ai should make in the late game. The ai will 
 * seek to the highest point value card that is feasible based on the 
