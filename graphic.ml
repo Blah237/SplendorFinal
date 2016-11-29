@@ -16,8 +16,8 @@ let grey   = rgb 160 160 160
 let silver = rgb 192 192 192
 
 (* Window Size *)
-let height = 680
-let width = 920
+let height = 675
+let width = 955
 
 (* Card Dimensions *)
 let card_height = 115
@@ -41,13 +41,19 @@ let deck_height = card_height
 let deck_width  = 20
 let deck_left = 85
 
+(* Player Info *)
+let player_height = 150
+let player_width = 240
+let player_left = 700
+let player_buffer = 15
+
 (* [create_graph] creates a blank graph with grey background *)
 let create_graph height width =
   close_graph ();
   open_graph (" " ^ string_of_int width ^ "x" ^ string_of_int height);
   set_window_title "Splendor";
   set_color grey;
-  fill_rect 0 0 (size_x ()) (size_y ());
+  fill_rect 0 0 width height;
   ()
 
 (* [draw_gems state] draws the all remaining gems in [state] *)
@@ -215,15 +221,110 @@ let draw_decks state =
   end in
   ()
 
+(* Draw one [player] at location [x], [y] *)
+let draw_player player color x y =
+  set_color color;
+  draw_rect x y player_width player_height;
+  set_color white;
+  moveto (x + 10) (y + player_height - 17);
+  draw_string ("points: " ^ string_of_int player.points);
+  let draw_gems gem color text num =
+    let radius = 13 in
+    let left = x + 10 + radius in
+    let top = (y + player_height - 40) in
+    let buffer = 3*radius in
+    if gem = 0 then begin (* Don't draw circle if no gems *)
+      set_color grey;
+      fill_circle (left + num*buffer) top radius;
+      () end
+    else begin
+      set_color color;
+      fill_circle (left + num*buffer) top radius;
+      moveto (left + num*buffer - 2) (top - 5);
+      set_color text;
+      draw_string (string_of_int gem);
+      () end in
+  draw_gems player.gems_held.green green black 0;
+  draw_gems player.gems_held.white white black 1;
+  draw_gems player.gems_held.blue  blue  white 2;
+  draw_gems player.gems_held.black black white 3;
+  draw_gems player.gems_held.red   red   black 4;
+  draw_gems player.gold            gold  black 5;
+  let draw_card card num =
+    let c_width = 26 in
+    let c_height = 35 in
+    let left = x + 10 in
+    let bottom = (y + player_height - 100) in
+    let buffer = 3*c_width/2 in
+    let (color,text) =
+        match card.color with
+          | Red   -> red, black
+          | Blue  -> blue, white
+          | Black -> black, white
+          | Green -> green, black
+          | White -> white, black in
+    set_color color;
+    fill_rect (left + num*buffer) bottom c_width c_height;
+    moveto (left + num*buffer + c_width/2 - 2) (bottom + c_height/2 - 5);
+    set_color text;
+    draw_string (string_of_int card.points);
+    () in
+  let rec draw_all card_lst num =
+    match card_lst with
+    | []   -> ()
+    | h::t -> draw_card h num; draw_all t (num + 1)
+  in draw_all player.reserved 0;
+  (* Draw Discounts *)
+  let draw_discount gem color text num =
+    let d_width = 26 in
+    let d_height = 26 in
+    let left = x + 10 in
+    let bottom = (y + player_height - 140) in
+    let buffer = 3*d_width/2 in
+    if gem = 0 then begin (* Don't draw circle if no gems *)
+      set_color grey;
+      fill_rect (left + num*buffer) bottom d_width d_height;
+      () end
+    else begin
+      set_color color;
+      fill_rect (left + num*buffer) bottom d_width d_height;
+      moveto (left + num*buffer + d_width/2 - 2) (bottom + d_height/2 - 5);
+      set_color text;
+      draw_string (string_of_int gem);
+      () end in
+  draw_discount player.discounts.green green black 0;
+  draw_discount player.discounts.white white black 1;
+  draw_discount player.discounts.blue  blue  white 2;
+  draw_discount player.discounts.black black white 3;
+  draw_discount player.discounts.red   red   black 4;
+  ()
+
+(* Draw all players *)
+let draw_players state =
+ (* draw_player (List.nth state.players 0) red 0 0 *)
+  let rec draw_each player num =
+    let big_space = player_height + player_buffer in
+    match player with
+    | []   -> ()
+    | h::t -> draw_player h red player_left (height - num*big_space);
+        draw_each t (num + 1)
+  in draw_each state.players 1
+
 (* Type for all possible clicks on the board *)
-type clicked =
+type clickable =
 | Green_gem
 | White_gem
 | Blue_gem
 | Black_gem
 | Red_gem
 | Gold_gem
+| Deck1
+| Deck2
+| Deck3
 | Card of int*int  (* Card from deck*order, like deck1*card2 *)
+| Buy of clickable list
+| Reserve of clickable
+| Cancel
 
 (* Check if user clicked on gem. Returns Some clicked, or None *)
 let gem_click mouse_x mouse_y =
@@ -288,9 +389,11 @@ let card2 = {color=Green; points=4; gem_cost=gems2;}
 let card3 = {color=White; points=2; gem_cost=gems3;}
 let card4 = {color=Blue ; points=6; gem_cost=gems4;}
 let card5 = {color=Red  ; points=4; gem_cost=gems1;}
+let player1 = {gems_held=gems1; discounts=gems2; reserved=[card1;card2]; bought=0; points=5; player_type=Human; gold=5}
+
 
 let state = {
-  players = [];
+  players = [player1; player1; player1; player1];
   tier1_deck = [card1; card2; card1; card4; card2; card5];
   tier2_deck = [card1; card1; card1; card2;];
   tier3_deck = [card1; card1; card2;];
@@ -309,6 +412,7 @@ let draw state =
   draw_gems state;
   draw_cards state;
   draw_decks state;
+  draw_players state;
   ()
 
 
