@@ -310,6 +310,34 @@ let draw_players state =
         draw_each t (num + 1)
   in draw_each state.players 1
 
+(* [draw_card_info] draws [card] with the options to buy, reserve
+ * or cancel the buying process *)
+ let draw_card_info card =
+  let bx = 125 in
+  let tx = 225 in
+  let by = 95 in
+  let b2y = 125 in
+  let offset = 40 in
+   draw_card card 10 10 false;
+   draw_poly_line [|(0,150);(250,150);(250,0)|];
+   moveto (tx-60) 105;
+   draw_string ("Buy");
+   draw_poly_line [|(bx,by);(bx,b2y);(tx,b2y);(tx,by);(bx,by)|];
+   moveto (tx-70) (105-offset);
+   draw_string ("Reserve");
+   draw_poly_line [|(bx,by-offset);(bx,b2y-offset);(tx,b2y-offset);(tx,by-offset);(bx,by-offset)|];
+   moveto (tx-65) (105-offset*2);
+   draw_string ("Cancel");
+   draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
+
+
+(* Draws the UI for when players need to discard gems *)
+let draw_move_UI clickable_list =
+match clickable_list with
+| [] -> ()
+| h::t -> match h with
+         | Card(card) -> draw_card_info card
+
 (* Type for all possible clicks on the board *)
 type clickable =
 | Green_gem
@@ -415,8 +443,6 @@ let draw state =
   draw_players state;
   ()
 
-
-
 (* Check if clicking works *)
 let rec run state =
   draw state;
@@ -437,4 +463,3 @@ let rec run state =
         | Card (m,n)  -> (string_of_int m) ^ ", " ^ (string_of_int n)
   in print_string str; print_newline ();
   run state
-
