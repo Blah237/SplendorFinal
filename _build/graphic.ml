@@ -1,8 +1,9 @@
 (* open Card
 open Play *)
 
-#require "graphics";;
-#use "card.ml";;
+(* #require "graphics";;
+#use "card.ml";; *)
+open Card
 open Graphics
 
 (* colors *)
@@ -338,44 +339,21 @@ let drawsGem x y color =
   let top = (y + player_height - 40) in
   let buffer = 3*radius in
   moveto x y;
-  let (my_color,txt) = match color with
-  | Green -> green,black
-  | Blue -> blue,white
-  | Red -> red,black
-  | Black -> black,white
-  | White -> white,black in
+  let my_color = match color with
+  | Green -> green
+  | Blue -> blue
+  | Red -> red
+  | Black -> black
+  | White -> white in
   set_color my_color;
   fill_circle x y radius;
-  moveto (x-3) (y-5);
-  set_color txt;
+  moveto x y;
+  set_color white;
   draw_string (string_of_int 1)
 
 (* Draws gems in the bottom left corner. *)
 let draw_gem_info colorlst =
-  let x = 30 in
-  let bx = 125 in
-  let tx = 225 in
-  let by = 95 in
-  let b2y = 125 in
-  let y = 30 in
-  let offset = 40 in
-  let index = ref 0 in
-  draw_poly_line [|(0,150);(250,150);(250,0)|];
-  let rec draw_lst color_list =
-    match color_list with
-    | [] -> ()
-    | h::t ->
-      drawsGem x (y+offset*(!index)) h;
-      index:=!index+1;
-      draw_lst t in
-  draw_lst colorlst;
-  moveto (tx-60) 105;
-  draw_string ("Take");
-  draw_poly_line [|(bx,by);(bx,b2y);(tx,b2y);(tx,by);(bx,by)|];
-  moveto (tx-65) (105-offset*2);
-  draw_string ("Cancel");
-  draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
-
+  draw_poly_line [|(0,150);(250,150);(250,0)|]
 
 
 
