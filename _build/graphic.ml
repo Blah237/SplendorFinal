@@ -1,8 +1,9 @@
 (* open Card
 open Play *)
 
-#require "graphics";;
-#use "card.ml";;
+(* #require "graphics";;
+#use "card.ml";; *)
+open Card
 open Graphics
 
 (* colors *)
@@ -46,17 +47,6 @@ let player_height = 150
 let player_width = 240
 let player_left = 700
 let player_buffer = 15
-
-(* Type for all possible clicks on the board *)
-type clickable =
-| Gem of int
-| Card of card
-| Deck1
-| Deck2
-| Deck3
-| Buy
-| Reserve
-| Cancel
 
 (* [create_graph] creates a blank graph with grey background *)
 let create_graph height width =
@@ -341,13 +331,6 @@ let draw_players state =
    draw_string ("Cancel");
    draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
 
-(* Draws the UI for when players need to discard gems *)
-let draw_move_UI clickable_list =
-match clickable_list with
-| [] -> ()
-| h::t -> match h with
-         | Card (card) -> draw_card_info card
-         | _ -> failwith "Unimplemented"
 
 (* Draws a gem in a x y positions *)
 let drawsGem x y color =
@@ -356,43 +339,49 @@ let drawsGem x y color =
   let top = (y + player_height - 40) in
   let buffer = 3*radius in
   moveto x y;
-  let (my_color,txt) = match color with
-  | Green -> green,black
-  | Blue -> blue,white
-  | Red -> red,black
-  | Black -> black,white
-  | White -> white,black in
+  let my_color = match color with
+  | Green -> green
+  | Blue -> blue
+  | Red -> red
+  | Black -> black
+  | White -> white in
   set_color my_color;
   fill_circle x y radius;
-  moveto (x-3) (y-5);
-  set_color txt;
+  moveto x y;
+  set_color white;
   draw_string (string_of_int 1)
 
 (* Draws gems in the bottom left corner. *)
 let draw_gem_info colorlst =
-  let x = 30 in
-  let bx = 125 in
-  let tx = 225 in
-  let by = 95 in
-  let b2y = 125 in
-  let y = 30 in
-  let offset = 40 in
-  let index = ref 0 in
-  draw_poly_line [|(0,150);(250,150);(250,0)|];
-  let rec draw_lst color_list =
-    match color_list with
-    | [] -> ()
-    | h::t ->
-      drawsGem x (y+offset*(!index)) h;
-      index:=!index+1;
-      draw_lst t in
-  draw_lst colorlst;
-  moveto (tx-60) 105;
-  draw_string ("Take");
-  draw_poly_line [|(bx,by);(bx,b2y);(tx,b2y);(tx,by);(bx,by)|];
-  moveto (tx-65) (105-offset*2);
-  draw_string ("Cancel");
-  draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
+  draw_poly_line [|(0,150);(250,150);(250,0)|]
+
+
+
+
+(* Type for all possible clicks on the board *)
+type clickable =
+| Green_gem
+| White_gem
+| Blue_gem
+| Black_gem
+| Red_gem
+| Gold_gem
+| Deck1
+| Deck2
+| Deck3
+| Card of int*int  (* Card from deck*order, like deck1*card2 *)
+| Buy of clickable list
+| Reserve of clickable
+| Cancel
+
+(* Draws the UI for when players need to discard gems *)
+(* let draw_move_UI clickable_list =
+match clickable_list with
+| [] -> ()
+| h::t -> match h with
+         | Card(x,y) -> () (*draw_card_info card*)
+         | _ -> () *)
+
 
 
 (* Check if user clicked on gem. Returns Some clicked, or None *)
@@ -409,15 +398,15 @@ let gem_click mouse_x mouse_y =
     if (top - mouse_y) mod gem_buffer > diam then None
     else
       let color = (top - mouse_y) / gem_buffer in
-      if color = 0      then Some (Gem green)
-      else if color = 1 then Some (Gem white)
-      else if color = 2 then Some (Gem blue)
-      else if color = 3 then Some (Gem black)
-      else if color = 4 then Some (Gem red)
-      else                   Some (Gem gold)
+      if color = 0      then Some Green_gem
+      else if color = 1 then Some White_gem
+      else if color = 2 then Some Blue_gem
+      else if color = 3 then Some Black_gem
+      else if color = 4 then Some Red_gem
+      else                   Some Gold_gem
 
 (* Check if user clicked on card. Returns Some clicked, or None *)
-let card_click mouse_x mouse_y state =
+let card_click mouse_x mouse_y =
   let top = height - tier_top - card_spacing in
   if mouse_x < tier_left ||
      mouse_x > tier_left + 4*card_width + 3*card_spacing ||
@@ -432,151 +421,15 @@ let card_click mouse_x mouse_y state =
   else
     let tier = 3 - (top - mouse_y)/(card_height + card_spacing) in
     let card = 1 + (mouse_x - tier_left)/(card_width + card_spacing) in
-    let tier =
-      if tier = 1 then state.tier1
-      else if tier = 2 then state.tier2
-      else if tier = 3 then state.tier3
-      else failwith "code bug" in
-    let card = List.nth tier (card - 1) in
-    Some (Card (card))
-
-(* Check if user clicked on deck. Returns Some clicked, or None *)
-let deck_click mouse_x mouse_y =
-  let top = height - tier_top - card_spacing in
-  if mouse_x < deck_left ||
-     mouse_x > deck_left + deck_width ||
-     mouse_y < top - 3*card_height - 2*card_spacing ||
-     mouse_y > top
-  then None
-  else
-  (* Check if click is between gems *)
-  if (top - mouse_y) mod (card_height + card_spacing) > card_height then None
-  else
-    let deck = 3 - (top - mouse_y)/(card_height + card_spacing) in
-    if deck = 1 then Some Deck1
-    else if deck = 2 then Some Deck2
-    else if deck = 3 then Some Deck3
-    else failwith "code bug"
+    Some (Card (tier, card))
 
 (* Check if user clicked on either card or gem. Return clicked *)
-let click mouse_x mouse_y state =
-  let gem_click = gem_click mouse_x mouse_y in
-  let card_click = card_click mouse_x mouse_y state in
-  let deck_click = deck_click mouse_x mouse_y in
-  if gem_click <> None then gem_click
-  else if card_click <> None then card_click
-  else if deck_click <> None then deck_click
-  else None
-
-(* Draw the window *)
-let draw state =
-  create_graph height width;
-  draw_gems state;
-  draw_cards state;
-  draw_decks state;
-  draw_players state;
-  ()
-
-(* Helper function for valicate_click *)
-let validate_gem clickable_lst =
-  if List.length clickable_lst = 0 then true
-  else if List.length clickable_lst = 1 then
-    match List.nth clickable_lst 0 with
-    | Card _ -> false
-    | _ -> true
-  else if List.length clickable_lst = 2 then true
-  else false
-
-(* Returns true if new click is a valid move *)
-let validate_click clickable_lst new_click =
-  if List.length clickable_lst > 3 then failwith "List too long" else
-  match new_click with
-  | Gem _   -> validate_gem clickable_lst
-  | Card _  -> List.length clickable_lst = 0
-  | Deck1   -> List.length clickable_lst = 0
-  | Deck2   -> List.length clickable_lst = 0
-  | Deck3   -> List.length clickable_lst = 0
-  | Buy     -> true
-  | Reserve -> true
-  | Cancel  -> true
-
-(* Update a clickable_list with most recent user click *)
-let rec update_click_list clickable_lst new_click =
-  if validate_click clickable_lst new_click
-    then match new_click with
-    | Gem _   -> new_click::clickable_lst
-    | Card _  -> new_click::clickable_lst
-    | Deck1   -> new_click::clickable_lst
-    | Deck2   -> new_click::clickable_lst
-    | Deck3   -> new_click::clickable_lst
-    | Buy     -> []
-    | Reserve -> []
-    | Cancel  -> []
-  else clickable_lst
-
-(* Check if a new move is created *)
-let new_move new_click =
-  match new_click with
-  | Gem _   -> false
-  | Card _  -> false
-  | Deck1   -> false
-  | Deck2   -> false
-  | Deck3   -> false
-  | Buy     -> true
-  | Reserve -> true
-  | Cancel  -> false
-
-(* helper for get_move *)
-let color_gem gem =
-  let c = match gem with | Gem color -> color |_ -> failwith "Ony takes gems" in
-  if c = red then Red
-  else if c = blue then Blue
-  else if c = black then Black
-  else if c = green then Green
-  else if c = white then White
-  else failwith "Impossilble"
-
-(* Create a move from clickable_lst and new_click *)
-let get_move clickable_lst new_click =
-  match new_click with
-  | Buy     ->
-      begin match List.nth clickable_lst 0 with
-      | Gem _  -> begin match clickable_lst with
-                  | a::b::[]    -> Two (color_gem a)
-                  | a::b::c::[] -> Three (color_gem a, Some (color_gem b), Some (color_gem c))
-                  | _ -> failwith "This should never happen" end
-      | Card c -> Buy c
-      | _      -> failwith "This should never happen" end
-  | Reserve -> match List.nth clickable_lst 0 with
-      | Card c -> Reserve c
-      | Deck1  -> Top 1
-      | Deck2  -> Top 2
-      | Deck3  -> Top 3
-      | _      -> failwith "This should never happen"
-  | _      -> failwith "This should never happen"
-
-(* Keep listening to user clicks until you get a valid move to return *)
-let rec play state clickable_lst =
-  (* Wait for user click *)
-  let deets = wait_next_event[Button_down] in
-  let mouse_x = deets.mouse_x in
-  let mouse_y = deets.mouse_y in
-  let new_click = click mouse_x mouse_y state in
-  match new_click with
-  | None   -> play state clickable_lst
-  | Some c ->
-        (* Update list of clicked items *)
-        let clickable_lst = update_click_list clickable_lst c in
-        (* Draw list of clicked items *)
-        (* Create a move based on most recent click *)
-        if new_move c
-        then get_move clickable_lst c
-        else play state clickable_lst
-
-(* Take a state, return a move *)
-let run state =
-  draw state;
-  play state []
+let click mouse_x mouse_y =
+  let gem = gem_click mouse_x mouse_y in
+  (* If user didn't click on gem, check if they clicked on card,
+     else return gem click *)
+  if gem = None then card_click mouse_x mouse_y
+  else gem
 
 
 (*************************************)
@@ -611,3 +464,32 @@ let state = {
   turns_taken = 0;
   gold = 6;
 }
+
+let draw state =
+  create_graph height width;
+  draw_gems state;
+  draw_cards state;
+  draw_decks state;
+  draw_players state;
+  ()
+
+(* Check if clicking works *)
+let rec run state =
+  draw state;
+  let deets = wait_next_event[Button_down] in
+  let mouse_x = deets.mouse_x in
+  let mouse_y = deets.mouse_y in
+  let result = click mouse_x mouse_y in
+  let str =  match result with
+    | None    -> "None"
+    | Some x  ->
+        match x with
+        | Green_gem -> "Green"
+        | White_gem -> "White"
+        | Blue_gem  -> "Blue"
+        | Black_gem -> "Black"
+        | Red_gem   -> "Red"
+        | Gold_gem  -> "Gold"
+        | Card (m,n)  -> (string_of_int m) ^ ", " ^ (string_of_int n)
+  in print_string str; print_newline ();
+  run state
