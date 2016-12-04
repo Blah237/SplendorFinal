@@ -394,7 +394,6 @@ let draw_gem_info colorlst =
   draw_string ("Cancel");
   draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
 
-
 (* Check if user clicked on gem. Returns Some clicked, or None *)
 let gem_click mouse_x mouse_y =
   let top = height - top_buffer + gem_radius in
