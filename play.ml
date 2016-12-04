@@ -1017,21 +1017,26 @@ let buy_card p s c =
   (* First Checking if they can afford the card *)
 	match can_buy p c with
 	| (true,g) ->
+		let red_g = max 0 (min p.gems_held.red (c.gem_cost.red - p.discounts.red)) in
+		let blue_g = max 0 (min p.gems_held.blue (c.gem_cost.blue - p.discounts.blue)) in
+		let green_g = max 0 (min p.gems_held.green (c.gem_cost.green - p.discounts.green)) in
+		let white_g = max 0 (min p.gems_held.white (c.gem_cost.white - p.discounts.white)) in
+		let black_g = max 0 (min p.gems_held.black (c.gem_cost.black - p.discounts.black)) in
 		 (* Update player's gems *)
 		 let new_player_gems = {
-			 red = p.gems_held.red - c.gem_cost.red;
-			 blue = p.gems_held.blue - c.gem_cost.blue;
-			 green = p.gems_held.green - c.gem_cost.green;
-			 white = p.gems_held.white - c.gem_cost.white;
-			 black = p.gems_held.black - c.gem_cost.black;
+			 red = p.gems_held.red - red_g;
+			 blue = p.gems_held.blue - blue_g;
+			 green = p.gems_held.green - green_g;
+			 white = p.gems_held.white - white_g;
+			 black = p.gems_held.black - black_g;
 		 } in
 		 (* Update gems on table *)
 		 let table_gems = {
-			 red = s.available_gems.red + c.gem_cost.red;
-			 blue = s.available_gems.blue + c.gem_cost.blue;
-			 green = s.available_gems.green + c.gem_cost.green;
-			 white = s.available_gems.white + c.gem_cost.white;
-			 black = s.available_gems.black + c.gem_cost.black;
+			 red = s.available_gems.red + red_g;
+			 blue = s.available_gems.blue + blue_g;
+			 green = s.available_gems.green + green_g;
+			 white = s.available_gems.white + white_g;
+			 black = s.available_gems.black + black_g;
 		 } in
 		 (* update discounts *)
 		 let new_discounts = make_new_discounts p.discounts c in
