@@ -396,12 +396,6 @@ let draw_gem_info colorlst =
       index:=!index+1;
       draw_lst t in
   draw_lst colorlst;
-  match List.length colorlst with
-  | 1 ->
-  moveto (tx-65) (105-offset*2);
-  draw_string ("Cancel");
-  draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
-  | _ ->
   moveto (tx-60) 105;
   draw_string ("Buy");
   draw_poly_line [|(bx,by);(bx,b2y);(tx,b2y);(tx,by);(bx,by)|];
@@ -574,12 +568,6 @@ match clickable_list with
  * in terms of a valid move *)
  let eval_moves move lst=
  match move with
- | Buy ->
- if (List.length lst) = 1 then
-                match (List.hd lst) with
-                | Card(x) -> true
-                | _ -> false
-              else true
  | Reserve ->
  if (List.length lst) <1 || (List.length lst) >1  then false
               else
@@ -598,7 +586,7 @@ let new_move new_click lst =
   | Deck1   -> false
   | Deck2   -> false
   | Deck3   -> false
-  | Buy     -> eval_moves Buy lst
+  | Buy     -> true
   | Reserve -> eval_moves Reserve lst
   | Cancel  -> false
   | _ -> false
@@ -619,8 +607,9 @@ let get_move clickable_lst new_click =
   | Buy     ->
       begin match List.nth clickable_lst 0 with
       | Gem _  -> begin match clickable_lst with
-                  | a::b::[]    -> Two (color_gem a)
                   | a::b::c::[] -> Three (color_gem a, Some (color_gem b), Some (color_gem c))
+                  | a::b::[]    -> if a=b then Two (color_gem a) else Three (color_gem a, Some(color_gem b), None)
+                  | a::[]       -> Three (color_gem a, None, None)
                   | _ -> failwith "This should never happen" end
       | Card c -> Buy c
       | _      -> failwith "This should never happen" end
