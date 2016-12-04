@@ -593,7 +593,7 @@ let new_move new_click lst =
   | Deck2   -> false
   | Deck3   -> false
   | Buy     -> eval_moves Buy lst
-  | Reserve -> eval_moves Buy lst
+  | Reserve -> eval_moves Reserve lst
   | Cancel  -> false
   | _ -> false
 
