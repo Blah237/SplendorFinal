@@ -4,6 +4,7 @@ open Play *)
 #require "graphics";;
 #use "card.ml";;
 #use "play.ml";;
+#use "ai.ml";;
 open Graphics
 
 (* colors *)
@@ -47,6 +48,11 @@ let player_height = 150
 let player_width = 240
 let player_left = 700
 let player_buffer = 15
+
+(* Decks and cards and nobles *)
+let game_t1 = four_rest (shuffle make_tier_1)
+let game_t2 = four_rest (shuffle make_tier_2)
+let game_t3 = four_rest (shuffle make_tier_3)
 
 (* Type for all possible clicks on the board *)
 type clickable =
@@ -390,6 +396,12 @@ let draw_gem_info colorlst =
       index:=!index+1;
       draw_lst t in
   draw_lst colorlst;
+  match List.length colorlst with
+  | 1 ->
+  moveto (tx-65) (105-offset*2);
+  draw_string ("Cancel");
+  draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
+  | _ ->
   moveto (tx-60) 105;
   draw_string ("Buy");
   draw_poly_line [|(bx,by);(bx,b2y);(tx,b2y);(tx,by);(bx,by)|];
@@ -551,24 +563,45 @@ let rec update_click_list clickable_lst new_click =
 (* Draws the UI for when players need to take thier move*)
 let draw_move_UI clickable_list state =
 match clickable_list with
-| [] -> draw state
+| [] ->  draw state
 | h::t -> match h with
          | Card (card) -> draw_card_info card
          | Gem(x) -> draw_gem_info (swap_clickable clickable_list)
-         | Buy -> print_string "buy";
          | _ -> ()
+| _ -> ()
+
+(* Helper function on whether buy and reserve should be true or false
+ * in terms of a valid move *)
+ let eval_moves move lst=
+ match move with
+ | Buy ->
+ if (List.length lst) = 1 then
+                match (List.hd lst) with
+                | Card(x) -> true
+                | _ -> false
+              else true
+ | Reserve ->
+ if (List.length lst) <1 || (List.length lst) >1  then false
+              else
+              match (List.hd lst) with
+              | Card(x) -> true
+              | _ -> false
+ | _ -> false
+
+
 
 (* Check if a new move is created *)
-let new_move new_click =
+let new_move new_click lst =
   match new_click with
   | Gem _   -> false
   | Card _  -> false
   | Deck1   -> false
   | Deck2   -> false
   | Deck3   -> false
-  | Buy     -> true
-  | Reserve -> true
+  | Buy     -> eval_moves Buy lst
+  | Reserve -> eval_moves Reserve lst
   | Cancel  -> false
+  | _ -> false
 
 (* helper for get_move *)
 let color_gem gem =
@@ -582,7 +615,6 @@ let color_gem gem =
 
 (* Create a move from clickable_lst and new_click *)
 let get_move clickable_lst new_click =
-  print_int (List.length clickable_lst);
   match new_click with
   | Buy     ->
       begin match List.nth clickable_lst 0 with
@@ -603,21 +635,26 @@ let get_move clickable_lst new_click =
 (* Keep listening to user clicks until you get a valid move to return *)
 let rec graphic_play state clickable_lst =
   (* Wait for user click *)
-  let deets = wait_next_event[Button_down] in
-  let mouse_x = deets.mouse_x in
-  let mouse_y = deets.mouse_y in
-  let new_click = click mouse_x mouse_y state in
-  match new_click with
-  | None   -> graphic_play state clickable_lst
-  | Some c ->
-        (* Update list of clicked items *)
-        let clickable_lst = update_click_list clickable_lst c in
-        (* Draw list of clicked items *)
-        draw_move_UI clickable_lst state;
-        (* Create a move based on most recent click *)
-        if new_move c
-        then get_move clickable_lst c
-        else graphic_play state clickable_lst
+  let player_typ = (List.hd state.players) in
+  match player_typ.player_type with
+  | Ai(x) -> determine_move state
+  | Human ->
+    let deets = wait_next_event[Button_down] in
+    let mouse_x = deets.mouse_x in
+    let mouse_y = deets.mouse_y in
+    let new_click = click mouse_x mouse_y state in
+    match new_click with
+    | None   -> graphic_play state clickable_lst
+    | Some c ->
+          (* Update list of clicked items *)
+          let clickable_lst = update_click_list clickable_lst c in
+          (* Draw list of clicked items *)
+          draw_move_UI clickable_lst state;
+          (* Create a move based on most recent click *)
+          if new_move c clickable_lst
+          then get_move clickable_lst c
+          else graphic_play state clickable_lst
+
 
 
 
@@ -636,32 +673,45 @@ let card2 = {color=Green; points=4; gem_cost=gems2;}
 let card3 = {color=White; points=2; gem_cost=gems3;}
 let card4 = {color=Blue ; points=6; gem_cost=gems4;}
 let card5 = {color=Red  ; points=4; gem_cost=gems1;}
-let player1 = {gems_held=gems1; discounts=gems2; reserved=[card1;card2]; bought=0; points=5; player_type=Human; gold=5}
+let player1 = {gems_held=no_gems; discounts=no_gems; reserved=[]; bought=0; points=0; player_type=Human; gold=0}
 
 
-let the_state = {
-  players = [player1; player1; player1; player1];
-  tier1_deck = [card1; card2; card1; card4; card2; card5];
-  tier2_deck = [card1; card1; card1; card2;];
-  tier3_deck = [card1; card1; card2;];
-  tier1 = [card5; card2; card3; card4];
-  tier2 = [card1; card4; card5; card2];
-  tier3 = [card4; card2; card1; card3];
-  nobles = [gems2; gems3; gems4; gems1; gems2];
-  available_gems = some_gems;
-  gem_piles = 0;
-  turns_taken = 0;
-  gold = 6;
-}
+
+let the_state = init_state 4 0
 
 (* Take a state, return a move *)
-let run state =
+let run state error_msg=
   draw state;
+  moveto (width/2 - 250) (height - 30);
+  set_color white;
+  set_text_size 10;
+  draw_string error_msg;
   graphic_play state []
 
 (* a test repl *)
-let rec repl the_state =
-  let themove = run the_state in
+let rec repl the_state error_msg =
+  let themove = run the_state error_msg in
   let new_state = play the_state themove in
   match new_state with
-  | (a,b) -> repl a; ()
+  | (a,b) ->
+     repl a b; ()
+
+
+(*let rec end_game s turns =
+  DISPLAY MESSAGE "turns turns remaining"
+  let themove = run the_state in
+  let new_state = play the_state the move in
+  match new_state with
+  | (a,b) -> if turns = 0 then
+             let no_gems = {red=0;blue=0;black=0;green=0;white=0;}
+             let winnerdummy = {gems_held=no_gems;
+                            discounts=no_gems;
+                            reserved=[];
+                            bought=999;
+                            points=0;
+                            player_type = Human;
+                            gold=0} in
+             let thewinnerlist = calculate_winner_list winnerdummy [] in
+             let final_winnerlist = break_ties thewinnerlist winnerdummy []
+              DISPLAY WINNERS else
+             let new_turns = turns - 1 in end_game a new_turns; ()*)

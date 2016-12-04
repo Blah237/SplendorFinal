@@ -2,6 +2,9 @@
 open Play *)
 
 #require "graphics";;
+#use "card.ml"
+#use "play.ml";;
+#use "ai.ml"
 open Graphics
 
 (* colors *)
@@ -612,7 +615,6 @@ let color_gem gem =
 
 (* Create a move from clickable_lst and new_click *)
 let get_move clickable_lst new_click =
-  print_int (List.length clickable_lst);
   match new_click with
   | Buy     ->
       begin match List.nth clickable_lst 0 with
@@ -633,21 +635,26 @@ let get_move clickable_lst new_click =
 (* Keep listening to user clicks until you get a valid move to return *)
 let rec graphic_play state clickable_lst =
   (* Wait for user click *)
-  let deets = wait_next_event[Button_down] in
-  let mouse_x = deets.mouse_x in
-  let mouse_y = deets.mouse_y in
-  let new_click = click mouse_x mouse_y state in
-  match new_click with
-  | None   -> graphic_play state clickable_lst
-  | Some c ->
-        (* Update list of clicked items *)
-        let clickable_lst = update_click_list clickable_lst c in
-        (* Draw list of clicked items *)
-        draw_move_UI clickable_lst state;
-        (* Create a move based on most recent click *)
-        if new_move c clickable_lst
-        then get_move clickable_lst c
-        else graphic_play state clickable_lst
+  let player_typ = (List.hd state.players) in
+  match player_typ.player_type with
+  | Ai(x) -> determine_move state
+  | Human ->
+    let deets = wait_next_event[Button_down] in
+    let mouse_x = deets.mouse_x in
+    let mouse_y = deets.mouse_y in
+    let new_click = click mouse_x mouse_y state in
+    match new_click with
+    | None   -> graphic_play state clickable_lst
+    | Some c ->
+          (* Update list of clicked items *)
+          let clickable_lst = update_click_list clickable_lst c in
+          (* Draw list of clicked items *)
+          draw_move_UI clickable_lst state;
+          (* Create a move based on most recent click *)
+          if new_move c clickable_lst
+          then get_move clickable_lst c
+          else graphic_play state clickable_lst
+
 
 
 
@@ -670,7 +677,7 @@ let player1 = {name = "dummy"; gems_held=no_gems; discounts=no_gems; reserved=[]
 
 
 
-let the_state = init_state 4 0
+let the_state = init_state 1 3
 
 (* Take a state, return a move *)
 let run state error_msg=
