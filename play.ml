@@ -666,39 +666,6 @@ let make_nobles =
 	[t1_1;t1_2;t1_3;t1_4;t1_5;t1_6;t1_7;t1_8;t1_9;t1_10;]
 
 
-(* Recalculates the table gems when no golds are involved *)
- (* let updated_player_gems p_gems discounts c =
- let r = discounts.red - c.gem_cost.red in
- let b = discounts.black - c.gem_cost.black in
- let g = discounts.green - c.gem_cost.green in
- let w = discounts.white - c.gem_cost.white in
- let blu = discounts.blue - c.gem_cost.blue in
- {
- red = p.gems_held.red - (if r > 0 then r else 0);
- blue = p.gems_held.blue - (if blu > 0 then blu else 0);
- green = p.gems_held.green - (if g > 0 then g else 0);
- white = p.gems_held.white - (if w > 0 then w else 0);
- black = p.gems_held.black - (if b > 0 then b else 0);
- } *)
-
-
-(* Re-calculates how many gems a player has by taking into account
- * how many discounts they have, and how much the card costs *)
- let updated_player_gems p discounts c =
- let r = discounts.red - c.gem_cost.red in
- let b = discounts.black - c.gem_cost.black in
- let g = discounts.green - c.gem_cost.green in
- let w = discounts.white - c.gem_cost.white in
- let blu = discounts.blue - c.gem_cost.blue in
- {
- red = p.gems_held.red - (if r > 0 then r else 0);
- blue = p.gems_held.blue - (if blu > 0 then blu else 0);
- green = p.gems_held.green - (if g > 0 then g else 0);
- white = p.gems_held.white - (if w > 0 then w else 0);
- black = p.gems_held.black - (if b > 0 then b else 0);
- }
-
-
 (* Discards a single gem [gem] from the players hand [p] *)
 (* Returns a players gems_held after discard 1 gem *)
 (* Needs to check if they have atleast 1 gem of that kind *)
@@ -870,12 +837,33 @@ let four_rest lst =
 	| a::b::c::d::tl -> ([a;b;c;d],tl)
 	| _ -> (lst,[])
 
-(* creates a list of length [len] with all elements equal to [x] *)
-let rec make_list len x =
-	match len with
-	| 0 -> []
-	| _ -> x::(make_list (len - 1) x)
-
+(* creates a list of players, either human or ai depending on [hum],
+ of length [len] with all elements equal to [x] *)
+let rec make_players len num hum =
+	if num = len then []
+	else if hum then 
+				let plyr_human = {
+				gems_held = empty_gems;
+				name = "player" ^ string_of_int (num + 1);
+				discounts = empty_gems;
+				reserved = [];
+				bought = 0;
+				points = 0;
+				gold = 0;
+				player_type = Human} in
+				plyr_human::(make_players len (num + 1) hum)
+	else 
+				let plyr_ai = {
+				gems_held = empty_gems;
+				name = "computer" ^ string_of_int (num + 1);
+				discounts = empty_gems;
+				reserved = [];
+				bought = 0;
+				points = 0;
+				gold = 0;
+				player_type = Ai []} in
+				plyr_ai::(make_players len (num + 1) hum)
+	
 (* return the first [n] elements of a list [lst] *)
 let rec felements n lst =
 	if n = 0 then [] else
@@ -982,6 +970,7 @@ let take_gem n gem p g =
 	in
 	(* Modified player *)
 	let p_new = {
+		name = p.name;
 		gems_held = fst tup;
 		discounts = p.discounts;
 		reserved = p.reserved;
@@ -995,22 +984,8 @@ let take_gem n gem p g =
 
 (* make the players, randomize the order, shuffle decks, putting out cards *)
 let init_state num_human num_ai =
-	let plyr_human = {gems_held = empty_gems;
-				discounts = empty_gems;
-				reserved = [];
-				bought = 0;
-				points = 0;
-				gold = 0;
-				player_type = Human} in
-	let plyr_ai = {gems_held = empty_gems;
-				discounts = empty_gems;
-				reserved = [];
-				bought = 0;
-				points = 0;
-				gold = 0;
-				player_type = Ai []} in
-	let human_players = make_list num_human plyr_human in
-	let ai_players = make_list num_ai plyr_ai in
+	let human_players = make_players num_human 0 true in
+	let ai_players = make_players num_ai 0 false in
 	let plyrs = human_players@ai_players in
 	let tier_one = four_rest (shuffle make_tier_1) in
 	let tier_two = four_rest (shuffle make_tier_2) in
@@ -1076,6 +1051,7 @@ let buy_card p s c =
 		 let bought_cards = p.bought + 1 in
 		 let pts = p.points + c.points in
 		 let updated_player = {
+		 	 name = p.name;
 			 gems_held = new_player_gems;
 			 discounts = new_discounts;
 			 points = pts;
@@ -1165,6 +1141,7 @@ let buy_card p s c =
 			 }
 		else (* Case of buying a reserved card, not from the board *)
 			let new_player = {
+			 name = p.name;
 			 gems_held = updated_player.gems_held;
 			 discounts = updated_player.discounts;
 			 points = updated_player.points;
@@ -1358,6 +1335,7 @@ let reserve_card p s c =
 	if List.length p.reserved >= 3 then None
 	else
 	let updated_player = {
+			 name = p.name;
 			 gems_held = p.gems_held;
 			 discounts = p.discounts;
 			 points = p.points;
@@ -1456,6 +1434,7 @@ let reserve_top p s tier =
 	| _ -> s.tier3_deck
 	in
 	let updated_player = {
+			 name = p.name;
 			 gems_held = p.gems_held;
 			 discounts = p.discounts;
 			 points = p.points;
@@ -1594,8 +1573,6 @@ let rec break_ties highest_player_list highest_player acc =
 					break_ties tl highest_player acc
 
 (************************************)
-(* Unfinished play - need to have better logic for when None is returned
- * player should be able to do another move *)
 let rec play s m =
 	match m with
 	| Three (x, y, z) ->
