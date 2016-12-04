@@ -406,16 +406,6 @@ match lst with
           | _ -> []
 
 
-(* Draws the UI for when players need to take thier move*)
-let draw_move_UI clickable_list =
-match clickable_list with
-| [] -> ()
-| h::t -> match h with
-         | Card (card) -> draw_card_info card
-         | Gem(x) -> draw_gem_info (swap_clickable clickable_list)
-         | Buy -> print_string "buy";
-         | _ -> ()
-
 (* Check if user clicked on gem. Returns Some clicked, or None *)
 let gem_click mouse_x mouse_y =
   let top = height - top_buffer + gem_radius in
@@ -558,6 +548,16 @@ let rec update_click_list clickable_lst new_click =
     | Cancel  -> []
   else clickable_lst
 
+(* Draws the UI for when players need to take thier move*)
+let draw_move_UI clickable_list state =
+match clickable_list with
+| [] -> draw state
+| h::t -> match h with
+         | Card (card) -> draw_card_info card
+         | Gem(x) -> draw_gem_info (swap_clickable clickable_list)
+         | Buy -> print_string "buy";
+         | _ -> ()
+
 (* Check if a new move is created *)
 let new_move new_click =
   match new_click with
@@ -603,7 +603,6 @@ let get_move clickable_lst new_click =
 (* Keep listening to user clicks until you get a valid move to return *)
 let rec graphic_play state clickable_lst =
   (* Wait for user click *)
-  print_endline "fdsafda";
   let deets = wait_next_event[Button_down] in
   let mouse_x = deets.mouse_x in
   let mouse_y = deets.mouse_y in
@@ -614,7 +613,7 @@ let rec graphic_play state clickable_lst =
         (* Update list of clicked items *)
         let clickable_lst = update_click_list clickable_lst c in
         (* Draw list of clicked items *)
-        draw_move_UI clickable_lst;
+        draw_move_UI clickable_lst state;
         (* Create a move based on most recent click *)
         if new_move c
         then get_move clickable_lst c
