@@ -2,6 +2,8 @@
 open Play *)
 
 #require "graphics";;
+#use "card.ml";;
+#use "play.ml";;
 open Graphics
 
 (* colors *)
@@ -551,8 +553,8 @@ let rec update_click_list clickable_lst new_click =
     | Deck1   -> new_click::clickable_lst
     | Deck2   -> new_click::clickable_lst
     | Deck3   -> new_click::clickable_lst
-    | Buy     -> []
-    | Reserve -> []
+    | Buy     -> clickable_lst
+    | Reserve -> clickable_lst
     | Cancel  -> []
   else clickable_lst
 
@@ -580,6 +582,7 @@ let color_gem gem =
 
 (* Create a move from clickable_lst and new_click *)
 let get_move clickable_lst new_click =
+  print_int (List.length clickable_lst);
   match new_click with
   | Buy     ->
       begin match List.nth clickable_lst 0 with
@@ -654,7 +657,6 @@ let the_state = {
 
 (* Take a state, return a move *)
 let run state =
-  "inside";
   draw state;
   graphic_play state []
 
