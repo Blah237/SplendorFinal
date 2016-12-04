@@ -58,6 +58,15 @@ type clickable =
 | Reserve
 | Cancel
 
+(* Int to color *)
+let int_to_color x =
+match x with
+| 3913034 -> Green
+| 16185078 -> White
+| 2201043 -> Blue
+| 2829099 -> Black
+| 14555931 -> Red
+
 (* [create_graph] creates a blank graph with grey background *)
 let create_graph height width =
   close_graph ();
@@ -341,13 +350,6 @@ let draw_players state =
    draw_string ("Cancel");
    draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
 
-(* Draws the UI for when players need to discard gems *)
-let draw_move_UI clickable_list =
-match clickable_list with
-| [] -> ()
-| h::t -> match h with
-         | Card (card) -> draw_card_info card
-         | _ -> failwith "Unimplemented"
 
 (* Draws a gem in a x y positions *)
 let drawsGem x y color =
@@ -388,11 +390,30 @@ let draw_gem_info colorlst =
       draw_lst t in
   draw_lst colorlst;
   moveto (tx-60) 105;
-  draw_string ("Take");
+  draw_string ("Buy");
   draw_poly_line [|(bx,by);(bx,b2y);(tx,b2y);(tx,by);(bx,by)|];
   moveto (tx-65) (105-offset*2);
   draw_string ("Cancel");
   draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
+
+(* Helper function to turn clickable list into color list *)
+let rec swap_clickable lst =
+match lst with
+| [] -> []
+| h::t -> match h with
+          | Gem(x) -> (int_to_color x)::swap_clickable t
+          | _ -> []
+
+
+(* Draws the UI for when players need to take thier move*)
+let draw_move_UI clickable_list =
+match clickable_list with
+| [] -> ()
+| h::t -> match h with
+         | Card (card) -> draw_card_info card
+         | Gem(x) -> draw_gem_info (swap_clickable clickable_list)
+         | Buy -> print_string "buy";
+         | _ -> ()
 
 (* Check if user clicked on gem. Returns Some clicked, or None *)
 let gem_click mouse_x mouse_y =
@@ -557,6 +578,7 @@ let get_move clickable_lst new_click =
 (* Keep listening to user clicks until you get a valid move to return *)
 let rec play state clickable_lst =
   (* Wait for user click *)
+  print_endline "fdsafda";
   let deets = wait_next_event[Button_down] in
   let mouse_x = deets.mouse_x in
   let mouse_y = deets.mouse_y in
@@ -567,15 +589,12 @@ let rec play state clickable_lst =
         (* Update list of clicked items *)
         let clickable_lst = update_click_list clickable_lst c in
         (* Draw list of clicked items *)
+        draw_move_UI clickable_lst;
         (* Create a move based on most recent click *)
         if new_move c
         then get_move clickable_lst c
         else play state clickable_lst
 
-(* Take a state, return a move *)
-let run state =
-  draw state;
-  play state []
 
 
 (*************************************)
@@ -610,3 +629,9 @@ let state = {
   turns_taken = 0;
   gold = 6;
 }
+
+(* Take a state, return a move *)
+let run state =
+  "inside";
+  draw state;
+  play state []
