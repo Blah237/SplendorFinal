@@ -48,6 +48,11 @@ let player_width = 240
 let player_left = 700
 let player_buffer = 15
 
+(* Decks and cards and nobles *)
+let game_t1 = four_rest (shuffle make_tier_1)
+let game_t2 = four_rest (shuffle make_tier_2)
+let game_t3 = four_rest (shuffle make_tier_3)
+
 (* Type for all possible clicks on the board *)
 type clickable =
 | Gem of int
@@ -663,38 +668,25 @@ let card2 = {color=Green; points=4; gem_cost=gems2;}
 let card3 = {color=White; points=2; gem_cost=gems3;}
 let card4 = {color=Blue ; points=6; gem_cost=gems4;}
 let card5 = {color=Red  ; points=4; gem_cost=gems1;}
-let player1 = {gems_held=gems1; discounts=gems2; reserved=[card1;card2]; bought=0; points=5; player_type=Human; gold=5}
+let player1 = {gems_held=no_gems; discounts=no_gems; reserved=[]; bought=0; points=0; player_type=Human; gold=0}
 
 
-let the_state = {
-  players = [player1; player1; player1; player1];
-  tier1_deck = [card1; card2; card1; card4; card2; card5];
-  tier2_deck = [card1; card1; card1; card2;];
-  tier3_deck = [card1; card1; card2;];
-  tier1 = [card5; card2; card3; card4];
-  tier2 = [card1; card4; card5; card2];
-  tier3 = [card4; card2; card1; card3];
-  nobles = [gems2; gems3; gems4; gems1; gems2];
-  available_gems = some_gems;
-  gem_piles = 0;
-  turns_taken = 0;
-  gold = 6;
-}
+
+let the_state = init_state 4 0
 
 (* Take a state, return a move *)
-let run state =
+let run state error_msg=
   draw state;
+  moveto (width/2 - 250) (height - 30);
+  set_color white;
+  set_text_size 10;
+  draw_string error_msg;
   graphic_play state []
 
 (* a test repl *)
-let rec repl the_state =
-  let themove = run the_state in
+let rec repl the_state error_msg =
+  let themove = run the_state error_msg in
   let new_state = play the_state themove in
   match new_state with
   | (a,b) ->
-     moveto (100) (100);
-     print_endline b;
-     set_color white;
-     set_text_size 10;
-     draw_string b;
-     repl a; ()
+     repl a b; ()
