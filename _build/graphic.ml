@@ -390,12 +390,6 @@ let draw_gem_info colorlst =
       index:=!index+1;
       draw_lst t in
   draw_lst colorlst;
-  match List.length colorlst with
-  | 1 ->
-  moveto (tx-65) (105-offset*2);
-  draw_string ("Cancel");
-  draw_poly_line [|(bx,by-offset*2);(bx,b2y-offset*2);(tx,b2y-offset*2);(tx,by-offset*2);(bx,by-offset*2)|]
-  | _ ->
   moveto (tx-60) 105;
   draw_string ("Buy");
   draw_poly_line [|(bx,by);(bx,b2y);(tx,b2y);(tx,by);(bx,by)|];
@@ -557,45 +551,24 @@ let rec update_click_list clickable_lst new_click =
 (* Draws the UI for when players need to take thier move*)
 let draw_move_UI clickable_list state =
 match clickable_list with
-| [] ->  draw state
+| [] -> draw state
 | h::t -> match h with
          | Card (card) -> draw_card_info card
          | Gem(x) -> draw_gem_info (swap_clickable clickable_list)
+         | Buy -> print_string "buy";
          | _ -> ()
-| _ -> ()
-
-(* Helper function on whether buy and reserve should be true or false
- * in terms of a valid move *)
- let eval_moves move lst=
- match move with
- | Buy ->
- if (List.length lst) = 1 then
-                match (List.hd lst) with
-                | Card(x) -> true
-                | _ -> false
-              else true
- | Reserve ->
- if (List.length lst) <1 || (List.length lst) >1  then false
-              else
-              match (List.hd lst) with
-              | Card(x) -> true
-              | _ -> false
- | _ -> false
-
-
 
 (* Check if a new move is created *)
-let new_move new_click lst =
+let new_move new_click =
   match new_click with
   | Gem _   -> false
   | Card _  -> false
   | Deck1   -> false
   | Deck2   -> false
   | Deck3   -> false
-  | Buy     -> eval_moves Buy lst
-  | Reserve -> eval_moves Buy lst
+  | Buy     -> true
+  | Reserve -> true
   | Cancel  -> false
-  | _ -> false
 
 (* helper for get_move *)
 let color_gem gem =
@@ -642,7 +615,7 @@ let rec graphic_play state clickable_lst =
         (* Draw list of clicked items *)
         draw_move_UI clickable_lst state;
         (* Create a move based on most recent click *)
-        if new_move c clickable_lst
+        if new_move c
         then get_move clickable_lst c
         else graphic_play state clickable_lst
 
@@ -691,10 +664,4 @@ let rec repl the_state =
   let themove = run the_state in
   let new_state = play the_state themove in
   match new_state with
-  | (a,b) ->
-     moveto (100) (100);
-     print_endline b;
-     set_color white;
-     set_text_size 10;
-     draw_string b;
-     repl a; ()
+  | (a,b) -> repl a; ()
