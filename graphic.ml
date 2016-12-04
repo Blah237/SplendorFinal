@@ -478,14 +478,37 @@ let deck_click mouse_x mouse_y =
     else if deck = 3 then Some Deck3
     else failwith "code bug"
 
+(* Check if user clicked on a button *)
+let button_click mouse_x mouse_y =
+  let top = 125 in
+  let height = 30 in
+  let width = 100 in
+  let buffer = 10 in
+  let left = 125 in
+  if mouse_x < left ||
+     mouse_x > left + width ||
+     mouse_y < top - 3*height - 2*buffer ||
+     mouse_y > top
+  then None
+  else
+    if (top - mouse_y) mod (height + buffer) > height then None
+    else
+      let button = 3 - (top - mouse_y)/(height + buffer) in
+      if button = 1 then Some Cancel
+      else if button = 2 then Some Reserve
+      else if button = 3 then Some Buy
+      else failwith "code bug"
+
 (* Check if user clicked on either card or gem. Return clicked *)
 let click mouse_x mouse_y state =
   let gem_click = gem_click mouse_x mouse_y in
   let card_click = card_click mouse_x mouse_y state in
   let deck_click = deck_click mouse_x mouse_y in
+  let button_click = button_click mouse_x mouse_y in
   if gem_click <> None then gem_click
   else if card_click <> None then card_click
   else if deck_click <> None then deck_click
+  else if button_click <> None then button_click
   else None
 
 (* Draw the window *)
