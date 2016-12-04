@@ -1520,8 +1520,40 @@ let check_nobles p s nob =
 	| [] -> None
 	| l -> Some l
 
-let rec end_game p s turns =
-	failwith "Unimplemented"
+(** Creates a list of the player(s) with the highest point totals*)
+let rec calculate_winner_list player_list highest_player acc = 
+	match player_list with
+	| [] -> if List.mem highest_player acc then acc else
+				highest_player::acc
+	| hd::tl -> if hd.points > highest_player.points then
+				let new_acc = [] in
+				let new_highest_player = hd in
+				calculate_winner_list tl new_highest_player new_acc
+				else if hd.points = highest_player.points then
+					if List.mem hd acc then let new_acc = hd::acc in
+								calculate_winner_list tl highest_player new_acc
+					else 
+						let new_acc = highest_player::(hd::acc) in
+						calculate_winner_list tl highest_player new_acc
+				else 
+					calculate_winner_list tl highest_player acc
+
+let rec break_ties highest_player_list highest_player acc = 
+	match highest_player_list with
+	| [] -> if List.mem highest_player acc then acc else
+				highest_player::acc
+	| hd::tl -> if hd.bought < highest_player.bought then
+				let new_acc = [] in
+				let new_highest_player = hd in
+				break_ties tl new_highest_player new_acc
+				else if hd.bought = highest_player.bought then 
+					if List.mem hd acc then let new_acc = hd::acc in
+						break_ties tl highest_player new_acc 
+					else 
+						let new_acc = highest_player::(hd::acc) in
+						break_ties tl highest_player new_acc
+				else 
+					break_ties tl highest_player acc
 
 (************************************)
 (* Unfinished play - need to have better logic for when None is returned

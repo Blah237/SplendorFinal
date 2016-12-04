@@ -665,3 +665,11 @@ let rec repl the_state =
   let new_state = play the_state themove in
   match new_state with
   | (a,b) -> repl a; ()
+
+(*let rec end_game s turns = 
+  DISPLAY MESSAGE "turns turns remaining"
+  let themove = run the_state in
+  let new_state = play the_state the move in
+  match new_state with 
+  | (a,b) -> if turns = 0 then let thewinner = calculate_winner in DISPLAY WINNER else 
+             let new_turns = turns - 1 in end_game a new_turns; ()*)
