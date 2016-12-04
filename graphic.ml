@@ -2,8 +2,6 @@
 open Play *)
 
 #require "graphics";;
-#use "card.ml";;
-#use "play.ml";;
 open Graphics
 
 (* colors *)
@@ -668,7 +666,7 @@ let card2 = {color=Green; points=4; gem_cost=gems2;}
 let card3 = {color=White; points=2; gem_cost=gems3;}
 let card4 = {color=Blue ; points=6; gem_cost=gems4;}
 let card5 = {color=Red  ; points=4; gem_cost=gems1;}
-let player1 = {gems_held=no_gems; discounts=no_gems; reserved=[]; bought=0; points=0; player_type=Human; gold=0}
+let player1 = {name = "dummy"; gems_held=no_gems; discounts=no_gems; reserved=[]; bought=0; points=0; player_type=Human; gold=0}
 
 
 

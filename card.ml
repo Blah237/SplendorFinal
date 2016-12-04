@@ -22,9 +22,6 @@ type card = {
 		(** cost in gems for the card of their respective colors *)
 }
 
-(** colors represent the card requirements in colored cards to obtain a noble *)
-type noble = gems
-
 type player_type =
 | Ai of color list
 | Human
@@ -32,6 +29,7 @@ type player_type =
 (** a player stores all of the necessary information about what a player has
  * done throughout the game*)
 type player = {
+ 	name : string;
 	gems_held : gems;
 		(** The number of gems a player has*)
 	discounts : gems;
@@ -77,7 +75,7 @@ type state = {
 	tier2 : card list;
 	tier3 : card list;
 		(** the cards available, seperated by tier *)
-	nobles : noble list;
+	nobles : gems list;
 		(** the nobles currently available *)
 	available_gems : gems;
 		(** the gems currently available for taking *)

@@ -3,7 +3,7 @@
 The website below was relied on heavily to write the sublist function:
 *http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
 
-open Card
+(*open Card*)
 
 (********* GENERAL USE FUNCTIONS BELOW *********)
 
@@ -567,7 +567,8 @@ let take_three_gems_helper ai three =
 	let new_list = take_three_gems_helper_helper ai three in
 	let corrected = if List.length new_list >= 50 then 
 	sublist 0 46 new_list else new_list in
-	{gems_held = ai.gems_held;
+	{name = ai.name;
+	gems_held = ai.gems_held;
 	discounts = ai.discounts;
 	reserved = ai.reserved;
 	bought = ai.bought;
