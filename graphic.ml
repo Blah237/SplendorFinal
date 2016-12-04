@@ -690,3 +690,23 @@ let rec repl the_state error_msg =
   match new_state with
   | (a,b) ->
      repl a b; ()
+
+
+(*let rec end_game s turns =
+  DISPLAY MESSAGE "turns turns remaining"
+  let themove = run the_state in
+  let new_state = play the_state the move in
+  match new_state with
+  | (a,b) -> if turns = 0 then
+             let no_gems = {red=0;blue=0;black=0;green=0;white=0;}
+             let winnerdummy = {gems_held=no_gems;
+                            discounts=no_gems;
+                            reserved=[];
+                            bought=999;
+                            points=0;
+                            player_type = Human;
+                            gold=0} in
+             let thewinnerlist = calculate_winner_list winnerdummy [] in
+             let final_winnerlist = break_ties thewinnerlist winnerdummy []
+              DISPLAY WINNERS else
+             let new_turns = turns - 1 in end_game a new_turns; ()*)
