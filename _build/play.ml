@@ -667,7 +667,7 @@ let make_nobles =
 
 
 (* Recalculates the table gems when no golds are involved *)
- (* let updated_player_gems p_gems discounts c =
+ let updated_player_gems p_gems discounts c =
  let r = discounts.red - c.gem_cost.red in
  let b = discounts.black - c.gem_cost.black in
  let g = discounts.green - c.gem_cost.green in
@@ -679,12 +679,12 @@ let make_nobles =
  green = p.gems_held.green - (if g > 0 then g else 0);
  white = p.gems_held.white - (if w > 0 then w else 0);
  black = p.gems_held.black - (if b > 0 then b else 0);
- } *)
+ }
 
 
 (* Re-calculates how many gems a player has by taking into account
  * how many discounts they have, and how much the card costs *)
- let updated_player_gems p discounts c =
+ let updated_player_gems p_gems discounts c =
  let r = discounts.red - c.gem_cost.red in
  let b = discounts.black - c.gem_cost.black in
  let g = discounts.green - c.gem_cost.green in
@@ -1050,26 +1050,15 @@ let buy_card p s c =
   (* First Checking if they can afford the card *)
 	match can_buy p c with
 	| (true,g) ->
-		let red_g = max 0 (min p.gems_held.red (c.gem_cost.red - p.discounts.red)) in
-		let blue_g = max 0 (min p.gems_held.blue (c.gem_cost.blue - p.discounts.blue)) in
-		let green_g = max 0 (min p.gems_held.green (c.gem_cost.green - p.discounts.green)) in
-		let white_g = max 0 (min p.gems_held.white (c.gem_cost.white - p.discounts.white)) in
-		let black_g = max 0 (min p.gems_held.black (c.gem_cost.black - p.discounts.black)) in
 		 (* Update player's gems *)
-		 let new_player_gems = {
-			 red = p.gems_held.red - red_g;
-			 blue = p.gems_held.blue - blue_g;
-			 green = p.gems_held.green - green_g;
-			 white = p.gems_held.white - white_g;
-			 black = p.gems_held.black - black_g;
-		 } in
+		 let new_player_gems = updated_player_gems p p.discounts c in
 		 (* Update gems on table *)
 		 let table_gems = {
-			 red = s.available_gems.red + red_g;
-			 blue = s.available_gems.blue + blue_g;
-			 green = s.available_gems.green + green_g;
-			 white = s.available_gems.white + white_g;
-			 black = s.available_gems.black + black_g;
+			 red = s.available_gems.red + c.gem_cost.red;
+			 blue = s.available_gems.blue + c.gem_cost.blue;
+			 green = s.available_gems.green + c.gem_cost.green;
+			 white = s.available_gems.white + c.gem_cost.white;
+			 black = s.available_gems.black + c.gem_cost.black;
 		 } in
 		 (* update discounts *)
 		 let new_discounts = make_new_discounts p.discounts c in
@@ -1558,40 +1547,8 @@ let check_nobles p s nob =
 	| [] -> None
 	| l -> Some l
 
-(** Creates a list of the player(s) with the highest point totals*)
-let rec calculate_winner_list player_list highest_player acc = 
-	match player_list with
-	| [] -> if List.mem highest_player acc then acc else
-				highest_player::acc
-	| hd::tl -> if hd.points > highest_player.points then
-				let new_acc = [] in
-				let new_highest_player = hd in
-				calculate_winner_list tl new_highest_player new_acc
-				else if hd.points = highest_player.points then
-					if List.mem hd acc then let new_acc = hd::acc in
-								calculate_winner_list tl highest_player new_acc
-					else 
-						let new_acc = highest_player::(hd::acc) in
-						calculate_winner_list tl highest_player new_acc
-				else 
-					calculate_winner_list tl highest_player acc
-
-let rec break_ties highest_player_list highest_player acc = 
-	match highest_player_list with
-	| [] -> if List.mem highest_player acc then acc else
-				highest_player::acc
-	| hd::tl -> if hd.bought < highest_player.bought then
-				let new_acc = [] in
-				let new_highest_player = hd in
-				break_ties tl new_highest_player new_acc
-				else if hd.bought = highest_player.bought then 
-					if List.mem hd acc then let new_acc = hd::acc in
-						break_ties tl highest_player new_acc 
-					else 
-						let new_acc = highest_player::(hd::acc) in
-						break_ties tl highest_player new_acc
-				else 
-					break_ties tl highest_player acc
+let rec end_game p s turns =
+	failwith "Unimplemented"
 
 (************************************)
 (* Unfinished play - need to have better logic for when None is returned
