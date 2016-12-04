@@ -550,7 +550,7 @@ let determine_move s =
 	else
 		if s.turns_taken <= 20 then determine_early_move s current_player
 		else determine_late_move s current_player
-(*****************************************************************************)
+(****************************************************************************)
 
 
 (**** DISCARD GEMS FUNCTIONS ****)

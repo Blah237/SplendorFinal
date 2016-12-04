@@ -2,7 +2,6 @@
 open Play *)
 
 #require "graphics";;
-#use "card.ml";;
 open Graphics
 
 (* colors *)
@@ -571,7 +570,7 @@ let new_move new_click =
 
 (* helper for get_move *)
 let color_gem gem =
-  let c = match gem with | Gem color -> color |_ -> failwith "Ony takes gems" in
+  let c = match gem with | Gem color -> color |_ -> failwith "Only takes gems" in
   if c = red then Red
   else if c = blue then Blue
   else if c = black then Black
@@ -599,7 +598,7 @@ let get_move clickable_lst new_click =
   | _      -> failwith "This should never happen"
 
 (* Keep listening to user clicks until you get a valid move to return *)
-let rec play state clickable_lst =
+let rec graphic_play state clickable_lst =
   (* Wait for user click *)
   print_endline "fdsafda";
   let deets = wait_next_event[Button_down] in
@@ -607,7 +606,7 @@ let rec play state clickable_lst =
   let mouse_y = deets.mouse_y in
   let new_click = click mouse_x mouse_y state in
   match new_click with
-  | None   -> play state clickable_lst
+  | None   -> graphic_play state clickable_lst
   | Some c ->
         (* Update list of clicked items *)
         let clickable_lst = update_click_list clickable_lst c in
@@ -616,7 +615,7 @@ let rec play state clickable_lst =
         (* Create a move based on most recent click *)
         if new_move c
         then get_move clickable_lst c
-        else play state clickable_lst
+        else graphic_play state clickable_lst
 
 
 
@@ -638,7 +637,7 @@ let card5 = {color=Red  ; points=4; gem_cost=gems1;}
 let player1 = {gems_held=gems1; discounts=gems2; reserved=[card1;card2]; bought=0; points=5; player_type=Human; gold=5}
 
 
-let state = {
+let the_state = {
   players = [player1; player1; player1; player1];
   tier1_deck = [card1; card2; card1; card4; card2; card5];
   tier2_deck = [card1; card1; card1; card2;];
@@ -657,4 +656,11 @@ let state = {
 let run state =
   "inside";
   draw state;
-  play state []
+  graphic_play state []
+
+(* a test repl *)
+let rec repl the_state =
+  let themove = run the_state in
+  let new_state = play the_state themove in
+  match new_state with
+  | (a,b) -> repl a; ()

@@ -1,5 +1,5 @@
-open Card
-open Ai
+(*open Card
+open Ai*)
 
 let empty_gems = {red = 0; blue = 0; black = 0; green = 0; white = 0}
 
@@ -673,43 +673,43 @@ let discard_gem player gem =
 match gem with
 | Red ->
 	{
-		red = g.red -1;
-		blue = g.blue;
-		black = g.black;
-		green = g.green;
-		white = g.white;
+		red = player.gems_held.red -1;
+		blue = player.gems_held.blue;
+		black = player.gems_held.black;
+		green = player.gems_held.green;
+		white = player.gems_held.white;
 	}
 | Blue ->
 	{
-		red = g.red;
-		blue = g.blue-1;
-		black = g.black;
-		green = g.green;
-		white = g.white;
+		red = player.gems_held.red;
+		blue = player.gems_held.blue-1;
+		black = player.gems_held.black;
+		green = player.gems_held.green;
+		white = player.gems_held.white;
 	}
 | Green ->
 	{
-		red = g.red;
-		blue = g.blue;
-		black = g.black;
-		green = g.green-1;
-		white = g.white;
+		red = player.gems_held.red;
+		blue = player.gems_held.blue;
+		black = player.gems_held.black;
+		green = player.gems_held.green-1;
+		white = player.gems_held.white;
 	}
 | White ->
 	{
-		red = g.red;
-		blue = g.blue;
-		black = g.black;
-		green = g.green;
-		white = g.white-1;
+		red = player.gems_held.red;
+		blue = player.gems_held.blue;
+		black = player.gems_held.black;
+		green = player.gems_held.green;
+		white = player.gems_held.white-1;
 	}
 | Black ->
 	{
-		red = g.red;
-		blue = g.blue;
-		black = g.black-1;
-		green = g.green;
-		white = g.white;
+		red = player.gems_held.red;
+		blue = player.gems_held.blue;
+		black = player.gems_held.black-1;
+		green = player.gems_held.green;
+		white = player.gems_held.white;
 	}
 
 (* Calculates distance between a card and players held gems and discounts *)
