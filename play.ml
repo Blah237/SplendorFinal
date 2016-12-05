@@ -800,7 +800,7 @@ let exists k l =
 
 
 (* replaces the old player [p] with new player [p2] and returns the list*)
-let rec find_p p p2 lst=
+let rec find_p p p2 lst =
 match lst with
 | [] -> []
 | h::t ->
@@ -808,7 +808,7 @@ match lst with
 	 else h::find_p p p2 t
 
 (* removes [p] and returns the list*)
-let rec remove p lst=
+let rec remove p lst =
 match lst with
 | [] -> []
 | h::t ->
@@ -1063,7 +1063,7 @@ let buy_card p s c =
 		 (* Finished updated the player need to update state *)
 		 if exists c s.tier1 then
 		   let (deck,table) = refresh_cards s.tier1_deck s.tier1 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players)  in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1089,7 +1089,7 @@ let buy_card p s c =
 			 }
 		 else if exists c s.tier2 then
 			 let (deck,table) = refresh_cards s.tier2_deck s.tier2 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1115,7 +1115,7 @@ let buy_card p s c =
 			 }
 		 else if exists c s.tier3 then
 			 let (deck,table) = refresh_cards s.tier3_deck s.tier3 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1150,7 +1150,7 @@ let buy_card p s c =
 			 player_type = p.player_type;
 			 reserved = remove c p.reserved;
 			 }
-			in let new_p_list = List.tl s.players @ [new_player] in
+			in let new_p_list = new_player::(List.tl s.players) in
 			Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1259,7 +1259,7 @@ let take_three_gems p s g1 g2 g3 =
 	in
 	match tup3 with
 	| Some(p, g) -> let new_state =
-					{players = List.tl s.players @ [p];
+					{players = p::(List.tl s.players);
 						(** a list of the players playing the game *)
 					tier1_deck = s.tier1_deck;
 					tier2_deck = s.tier2_deck;
@@ -1307,7 +1307,7 @@ let take_two_gems p s gem =
 	in
 	match tup with
 	| Some(p, g) ->
-					Some {players = List.tl s.players @ [p];
+					Some {players = p::(List.tl s.players);
 						(** a list of the players playing the game *)
 					tier1_deck = s.tier1_deck;
 					tier2_deck = s.tier2_deck;
@@ -1347,7 +1347,7 @@ let reserve_card p s c =
 	in
 	if exists c s.tier1 then
 		   	 let (deck,table) = refresh_cards s.tier1_deck s.tier1 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1373,7 +1373,7 @@ let reserve_card p s c =
 			 }
 		 else if exists c s.tier2 then
 			 let (deck,table) = refresh_cards s.tier2_deck s.tier2 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1399,7 +1399,7 @@ let reserve_card p s c =
 			 }
 		 else
 			 let (deck,table) = refresh_cards s.tier3_deck s.tier3 c in
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1445,7 +1445,7 @@ let reserve_top p s tier =
 	}
 	in
 	if tier = 1 then
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1470,7 +1470,7 @@ let reserve_top p s tier =
 				 (** the number of gold coins available **)
 			 }
 		 else if tier = 2 then
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1495,7 +1495,7 @@ let reserve_top p s tier =
 				 (** the number of gold coins available **)
 			 }
 		 else
-			 let new_p_list = List.tl s.players @ [updated_player] in
+			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
 				 players = new_p_list;
 					 (** a list of the players playing the game *)
@@ -1533,71 +1533,93 @@ let check_nobles p s nob =
 			  then h::(noble_check player st t)
 			  else (noble_check player st t)
 	in
-	match noble_check p s nob with
-	| [] -> None
-	| l -> Some l
+	noble_check p s nob 
 
-(** Creates a list of the player(s) with the highest point totals*)
-let rec calculate_winner_list player_list highest_player acc = 
-	match player_list with
-	| [] -> if List.mem highest_player acc then acc else
-				highest_player::acc
-	| hd::tl -> if hd.points > highest_player.points then
-				let new_acc = [] in
-				let new_highest_player = hd in
-				calculate_winner_list tl new_highest_player new_acc
-				else if hd.points = highest_player.points then
-					if List.mem hd acc then let new_acc = hd::acc in
-								calculate_winner_list tl highest_player new_acc
-					else 
-						let new_acc = highest_player::(hd::acc) in
-						calculate_winner_list tl highest_player new_acc
-				else 
-					calculate_winner_list tl highest_player acc
+let change_nobles s = 
+	match (check_nobles (List.hd s.players) s s.nobles) with
+	| [] -> {    players = (List.tl s.players)@[List.hd s.players];
+					 (** a list of the players playing the game *)
+				 tier1_deck = s.tier1_deck;
+				 tier2_deck = s.tier2_deck;
+				 tier3_deck = s.tier3_deck;
+					 (** the cards remaining in the decks of cards, seperated by tier *)
+				 tier1 = s.tier1;
+				 tier2 = s.tier2;
+				 tier3 = s.tier3;
+					 (** the cards available, seperated by tier *)
+				 nobles = s.nobles;
+					 (** the nobles currently available *)
+				 available_gems = s.available_gems;
+					 (** the gems currently available for taking *)
+				 gem_piles = s.gem_piles;
+				 (** used for checking how many gems a player can/must take if there are
+				 less than three piles *)
+				 turns_taken = s.turns_taken;
+				 (** used for ai behavior *)
+				 gold = s.gold;
+				 (** the number of gold coins available **)
+			 }
+ 	| h::t -> let p = List.hd s.players in
+ 			  let updated_player = {
+			 	name = p.name;
+			 	gems_held = p.gems_held;
+			 	discounts = p.discounts;
+			 	points = p.points + 3;
+			 	bought = p.bought;
+			 	gold = p.gold;
+			 	player_type = p.player_type;
+			 	reserved = p.reserved;
+				} in
+ 				{   
+ 				 players = (List.tl s.players)@[updated_player];
+					 (** a list of the players playing the game *)
+				 tier1_deck = s.tier1_deck;
+				 tier2_deck = s.tier2_deck;
+				 tier3_deck = s.tier3_deck;
+					 (** the cards remaining in the decks of cards, seperated by tier *)
+				 tier1 = s.tier1;
+				 tier2 = s.tier2;
+				 tier3 = s.tier3;
+					 (** the cards available, seperated by tier *)
+				 nobles = remove h s.nobles;
+					 (** the nobles currently available *)
+				 available_gems = s.available_gems;
+					 (** the gems currently available for taking *)
+				 gem_piles = s.gem_piles;
+				 (** used for checking how many gems a player can/must take if there are
+				 less than three piles *)
+				 turns_taken = s.turns_taken;
+				 (** used for ai behavior *)
+				 gold = s.gold;
+				 (** the number of gold coins available **)
+			 }
 
-let rec break_ties highest_player_list highest_player acc = 
-	match highest_player_list with
-	| [] -> if List.mem highest_player acc then acc else
-				highest_player::acc
-	| hd::tl -> if hd.bought < highest_player.bought then
-				let new_acc = [] in
-				let new_highest_player = hd in
-				break_ties tl new_highest_player new_acc
-				else if hd.bought = highest_player.bought then 
-					if List.mem hd acc then let new_acc = hd::acc in
-						break_ties tl highest_player new_acc 
-					else 
-						let new_acc = highest_player::(hd::acc) in
-						break_ties tl highest_player new_acc
-				else 
-					break_ties tl highest_player acc
-
-(************************************)
 let rec play s m =
 	match m with
 	| Three (x, y, z) ->
-	   take_three_gems (List.hd s.players) s x y z
+	   let (a,b) = take_three_gems (List.hd s.players) s x y z in
+	   (change_nobles a, b)
 	| Two (x) ->
 	   let ret_val = take_two_gems (List.hd s.players) s x in
 		 if ret_val = None then
 		 (s, "Illegal move. There are not 4 of this color gem in the pile.")
-		 else ((get ret_val), "")
+		 else (change_nobles (get ret_val), "")
 	| Buy(x) ->
 	   let ret_val = buy_card (List.hd s.players) s x in
 		 if ret_val = None then
 		 (s, "Illegal move. You do not have enough gems to buy this card.")
-		 else ((get ret_val), "")
+		 else (change_nobles (get ret_val), "")
 	| Reserve(x) ->
 	   let ret_val = reserve_card (List.hd s.players) s x in
 	   	 if ret_val = None then
 		 (s, "Illegal move. You cannot have more than 3 cards reserved at a time.")
-		 else ((get ret_val), "")
+		 else (change_nobles (get ret_val), "")
 	| Top(x) ->
 	   let ret_val = reserve_top (List.hd s.players) s x in
 	   	 if ret_val = None then
 		 (s, "Illegal move. You cannot have more than 3 cards reserved at a time.")
-		 else ((get ret_val), "")
- 	| Pass -> let st = {players = List.tl s.players @ [List.hd s.players];
+		 else (change_nobles (get ret_val), "")
+ 	| Pass -> let st = {players = s.players;
 						(** a list of the players playing the game *)
 					tier1_deck = s.tier1_deck;
 					tier2_deck = s.tier2_deck;
@@ -1619,4 +1641,4 @@ let rec play s m =
 					gold = s.gold;
 					(** the number of gold coins available **)
 				}
-			in (st, "")
+			in (change_nobles st, "")
