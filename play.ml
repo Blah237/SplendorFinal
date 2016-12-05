@@ -827,6 +827,7 @@ match lst with
 
 (* returns a randomized version of [lst] *)
 let shuffle lst =
+	Random.self_init();
     let rand = List.map (fun c -> (Random.float 1.0, c)) lst in
     let sort_rand = List.sort compare rand in
     List.map snd sort_rand

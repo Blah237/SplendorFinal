@@ -730,8 +730,6 @@ let rec break_ties highest_player_list highest_player acc =
 				else
 					break_ties tl highest_player acc
 
-let no_gems = {red=0;blue=0;black=0;green=0;white=0;}
-
 
 (* Take a state, return a move *)
 let run state error_msg=
@@ -792,7 +790,7 @@ let rec end_game s turns =
                            discounts=no_gems;
                            reserved=[];
                            bought=999;
-                           name ="nate smells";
+                           name ="Clarkson is the best";
                            points=0;
                            player_type = Human;
                            gold=0} in
@@ -817,7 +815,7 @@ let rec end_game s turns =
    let new_state = play discard_state themove in
    let n_state = fst(new_state) in
    let last_player = List.nth (discard_state.players) (List.length discard_state.players - 1) in
-   if last_player.points >= 1
+   if last_player.points >= 15
    then
      let turns_left = n_state.turns_taken mod (List.length n_state.players) in
      end_game new_state turns_left
