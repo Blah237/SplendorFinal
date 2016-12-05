@@ -1011,7 +1011,7 @@ let discard s gem =
 		(** the nobles currently available *)
 	available_gems = g;
 		(** the gems currently available for taking *)
-	gem_piles = s.gem_piles;
+	gem_piles = calc_gem_piles g;
 	(** used for checking how many gems a player can/must take if there are
 	less than three piles *)
 	turns_taken = s.turns_taken;
@@ -1118,7 +1118,7 @@ let buy_card p s c =
 					 (** the nobles currently available *)
 				 available_gems = table_gems;
 					 (** the gems currently available for taking *)
-				 gem_piles = calc_gem_piles s.available_gems;
+				 gem_piles = calc_gem_piles table_gems;
 				 (** used for checking how many gems a player can/must take if there are
 				 less than three piles *)
 				 turns_taken = s.turns_taken + 1;
@@ -1144,7 +1144,7 @@ let buy_card p s c =
 					 (** the nobles currently available *)
 				 available_gems = table_gems;
 					 (** the gems currently available for taking *)
-				 gem_piles = calc_gem_piles s.available_gems;
+				 gem_piles = calc_gem_piles table_gems;
 				 (** used for checking how many gems a player can/must take if there are
 				 less than three piles *)
 				 turns_taken = s.turns_taken + 1;
@@ -1170,7 +1170,7 @@ let buy_card p s c =
 					 (** the nobles currently available *)
 				 available_gems = table_gems;
 					 (** the gems currently available for taking *)
-				 gem_piles = calc_gem_piles s.available_gems;
+				 gem_piles = calc_gem_piles table_gems;
 				 (** used for checking how many gems a player can/must take if there are
 				 less than three piles *)
 				 turns_taken = s.turns_taken + 1;
@@ -1205,7 +1205,7 @@ let buy_card p s c =
 					 (** the nobles currently available *)
 				 available_gems = table_gems;
 					 (** the gems currently available for taking *)
-				 gem_piles = calc_gem_piles s.available_gems;
+				 gem_piles = calc_gem_piles table_gems;
 				 (** used for checking how many gems a player can/must take if there are
 				 less than three piles *)
 				 turns_taken = s.turns_taken + 1;
@@ -1315,7 +1315,7 @@ let take_three_gems p s g1 g2 g3 =
 						(** the nobles currently available *)
 					available_gems = g;
 						(** the gems currently available for taking *)
-					gem_piles = s.gem_piles;
+					gem_piles = calc_gem_piles g;
 					(** used for checking how many gems a player can/must take if there are
 					less than three piles *)
 					turns_taken = s.turns_taken + 1;
@@ -1363,7 +1363,7 @@ let take_two_gems p s gem =
 						(** the nobles currently available *)
 					available_gems = g;
 						(** the gems currently available for taking *)
-					gem_piles = s.gem_piles;
+					gem_piles = calc_gem_piles g;
 					(** used for checking how many gems a player can/must take if there are
 					less than three piles *)
 					turns_taken = s.turns_taken + 1;
