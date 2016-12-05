@@ -430,7 +430,7 @@ let draw_endgame_display winners=
  draw_string "=============================";
  let rec draw_winners winners offset =
     match winners with
-    | [] -> print_string "fdas";
+    | [] -> ()
     | h::t -> moveto x (y - offset * (!i));
               i := !i + 1;
               set_color white;
