@@ -1257,8 +1257,9 @@ let take_three_gems p s g1 g2 g3 =
 	| None -> Some tup2
 	in
 	match tup3 with
-	| Some(p, g) -> let new_state =
-					{players = p::(List.tl s.players);
+	| Some(p, g) -> let m = Three(g1,g2,g3) in 
+					let new_state =
+					{players = (take_three_gems_helper p m)::(List.tl s.players);
 						(** a list of the players playing the game *)
 					tier1_deck = s.tier1_deck;
 					tier2_deck = s.tier2_deck;
@@ -1396,7 +1397,7 @@ let reserve_card p s c =
 				 gold = if s.gold > 0 then (s.gold - 1) else 0;
 				 (** the number of gold coins available **)
 			 }
-		 else
+		 else if exists c s.tier3 then
 			 let (deck,table) = refresh_cards s.tier3_deck s.tier3 c in
 			 let new_p_list = updated_player::(List.tl s.players) in
 			 Some {
@@ -1422,6 +1423,7 @@ let reserve_card p s c =
 				 gold = if s.gold > 0 then (s.gold - 1) else 0;
 				 (** the number of gold coins available **)
 			 }
+		else None
 
 let reserve_top p s tier =
 	if List.length p.reserved >= 3 then None
