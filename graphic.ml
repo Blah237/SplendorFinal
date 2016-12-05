@@ -748,7 +748,7 @@ let card4 = {color=Blue ; points=6; gem_cost=gems4;}
 let card5 = {color=Red  ; points=4; gem_cost=gems1;}
 let player1 = {name = "dummy"; gems_held=no_gems; discounts=no_gems; reserved=[]; bought=0; points=0; player_type=Human; gold=0}
 
-let the_state = init_state 2 0
+let the_state = init_state 4 0
 
 
 (* Take a state, return a move *)
@@ -759,32 +759,6 @@ let run state error_msg=
   set_text_size 10;
   draw_string error_msg;
   graphic_play state []
-
-let rec end_game s turns =
-  display_final_turns turns;
-  match s with
-  | (a,b) -> if turns = 0 then
-             let no_gems = {red=0;blue=0;black=0;green=0;white=0;} in
-             let winnerdummy = {gems_held=no_gems;
-                            discounts=no_gems;
-                            reserved=[];
-                            bought=999;
-                            name ="nate smells";
-                            points=0;
-                            player_type = Human;
-                            gold=0} in
-             let thewinnerlist = calculate_winner_list a.players winnerdummy [] in
-             let final_winnerlist = break_ties thewinnerlist winnerdummy [] in
-             display_final_turns turns;
-             draw_endgame_display final_winnerlist;
-             let deets = wait_next_event[Button_down] in
-             ()
-             else
-             let msg = "turns left : " ^ (string_of_int turns) in
-             let themove = run a msg in
-             let new_state = play a themove in
-             let new_turns = turns - 1 in end_game new_state new_turns
-
 
  let rec discard_repl state =
    let last_player = List.nth (state.players) (List.length state.players - 1) in
@@ -825,6 +799,35 @@ let rec end_game s turns =
      draw_string error_msg;
      discard_repl new_state
 
+
+let rec end_game s turns =
+ display_final_turns turns;
+ let s = (discard_repl (fst(s)), snd(s)) in
+ match s with
+ | (a,b) -> if turns = 0 then
+            let no_gems = {red=0;blue=0;black=0;green=0;white=0;} in
+            let winnerdummy = {gems_held=no_gems;
+                           discounts=no_gems;
+                           reserved=[];
+                           bought=999;
+                           name ="nate smells";
+                           points=0;
+                           player_type = Human;
+                           gold=0} in
+            let thewinnerlist = calculate_winner_list a.players winnerdummy [] in
+            let final_winnerlist = break_ties thewinnerlist winnerdummy [] in
+            display_final_turns turns;
+            draw_endgame_display final_winnerlist;
+            let deets = wait_next_event[Button_down] in
+            ()
+            else
+            let msg = "turns left : " ^ (string_of_int turns) in
+            let themove = run a msg in
+            let new_state = play a themove in
+            let new_turns = turns - 1 in end_game new_state new_turns
+
+
+
  (* a test repl *)
  let rec repl the_state error_msg =
    let discard_state = discard_repl the_state in
@@ -832,7 +835,7 @@ let rec end_game s turns =
    let new_state = play discard_state themove in
    let n_state = fst(new_state) in
    let last_player = List.nth (discard_state.players) (List.length discard_state.players - 1) in
-   if last_player.points >= 15
+   if last_player.points >= 1
    then
      let turns_left = n_state.turns_taken mod (List.length n_state.players) in
      end_game new_state turns_left
@@ -841,4 +844,4 @@ let rec end_game s turns =
    | (a,b) ->
       repl a b; ()
 
- let () = let start_state = init_state 1 1 in repl start_state ""
+ let () = let start_state = init_state 4 0 in repl start_state ""
