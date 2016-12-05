@@ -736,19 +736,6 @@ let rec break_ties highest_player_list highest_player acc =
 (*************************************)
 
 let no_gems = {red=0;blue=0;black=0;green=0;white=0;}
-let some_gems = {red=1;blue=2;black=3;green=4;white=3;}
-let gems1 = {red=3; blue=4; black=0; green=5; white=1;}
-let gems2 = {red=2; blue=0; black=0; green=7; white=3;}
-let gems3 = {red=0; blue=2; black=3; green=2; white=2;}
-let gems4 = {red=2; blue=1; black=1; green=1; white=3;}
-let card1 = {color=Black; points=3; gem_cost=gems3;}
-let card2 = {color=Green; points=4; gem_cost=gems2;}
-let card3 = {color=White; points=2; gem_cost=gems3;}
-let card4 = {color=Blue ; points=6; gem_cost=gems4;}
-let card5 = {color=Red  ; points=4; gem_cost=gems1;}
-let player1 = {name = "dummy"; gems_held=no_gems; discounts=no_gems; reserved=[]; bought=0; points=0; player_type=Human; gold=0}
-
-let the_state = init_state 2 0
 
 
 (* Take a state, return a move *)
@@ -840,5 +827,3 @@ let rec end_game s turns =
    match new_state with
    | (a,b) ->
       repl a b; ()
-
- let () = let start_state = init_state 1 1 in repl start_state ""

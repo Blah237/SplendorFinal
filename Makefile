@@ -1,5 +1,5 @@
 main:
-	ocamlbuild -pkgs oUnit,graphics graphic.byte && ./graphic.byte
+	ocamlbuild -pkgs oUnit,graphics main.byte && ./main.byte
 	
 test:
 	ocamlbuild -pkgs oUnit,str,unix test.byte && ./test.byte
