@@ -792,7 +792,7 @@ let rec end_game s turns =
 
  let rec discard_repl state =
    let last_player = List.nth (state.players) (List.length state.players - 1) in
-   if ((calc_players_gems last_player.gems_held) + last_player.gold) < 10 then state
+   if ((calc_players_gems last_player.gems_held) + last_player.gold) <= 10 then state
    else
    let () = draw state in
    let () = moveto (width/2 - 250) (height - 30) in
