@@ -14,7 +14,8 @@ let rec sum_list thelist acc =
 				sum_list tl new_acc
 
 (** I wrote this function after looking at the following page on Stack Overflow:
-* http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
+* http://stackoverflow.com/questions/2710233/
+* how-to-get-a-sub-list-from-a-list-in-ocaml*)
 let rec sublist start theend thelist =
   match thelist with
   | [] -> failwith "range too large"
@@ -119,26 +120,21 @@ let rec gather_colors_white deck=
 
 (** determine the dominant colors on the board*)
 let determine_domininant_color s =
-	let red_count_1 = gather_colors_red s.tier1 in
 	let red_count_2 = gather_colors_red s.tier2 in
 	let red_count_3 = gather_colors_red s.tier3 in
-	let blue_count_1 = gather_colors_blue s.tier1 in
 	let blue_count_2 = gather_colors_blue s.tier2 in
 	let blue_count_3 = gather_colors_blue s.tier3 in
-	let green_count_1 = gather_colors_green s.tier1 in
 	let green_count_2 = gather_colors_green s.tier2 in
 	let green_count_3 = gather_colors_green s.tier3 in
-	let black_count_1 = gather_colors_black s.tier1 in
 	let black_count_2 = gather_colors_black s.tier2 in
 	let black_count_3 = gather_colors_black s.tier3 in
-	let white_count_1 = gather_colors_white s.tier1 in
 	let white_count_2 = gather_colors_white s.tier2 in
 	let white_count_3 = gather_colors_white s.tier3 in
-	let total_red = red_count_1 + red_count_2 + red_count_3 in
-	let total_blue = blue_count_1 + blue_count_2 + blue_count_3 in
-	let total_green = green_count_1 + green_count_2 + green_count_3 in
-	let total_black = black_count_1 + black_count_2 + black_count_3 in
-	let total_white = white_count_1 + white_count_2 + white_count_3 in
+	let total_red = red_count_2 + red_count_3 in
+	let total_blue = blue_count_2 + blue_count_3 in
+	let total_green = green_count_2 + green_count_3 in
+	let total_black = black_count_2 + black_count_3 in
+	let total_white = white_count_2 + white_count_3 in
 	let thelist = [total_red; total_green; total_blue; total_black;
 					 total_white] in
 	let sorted = List.sort compare thelist in

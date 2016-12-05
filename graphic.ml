@@ -794,4 +794,4 @@ let rec end_game s turns =
    | (a,b) ->
       repl a b; ()
 
- let () = repl the_state ""
+ let () = let start_state = init_state 1 1 in repl start_state ""
