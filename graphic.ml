@@ -779,12 +779,36 @@ let rec end_game s turns =
              let new_state = play a themove in
              let new_turns = turns - 1 in end_game new_state new_turns
 
+ let rec discard_repl state =
+    let deetz = wait_next_event[Key_pressed] in
+    let color =
+       match deetz.key with
+       | g -> Green
+       | w -> White
+       | b -> Blue
+       | l -> Black
+       | r -> Red
+       in
+    let (new_state,error_msg) = discard state color in
+    moveto (width/2 - 250) (height - 30);
+    set_color white;
+    set_text_size 10;
+    draw_string error_msg;
+    let n_state = fst(new_state) in
+    let last_player = List.nth (n_state.players) (List.length n_state.players - 1) in
+    (* Check if the last player has >10 gems *)
+    if ((calc_players_gems last_player) + last_player.gold) > 10 then discard_repl new_state
+    else ()
+
  (* a test repl *)
  let rec repl the_state error_msg =
    let themove = run the_state error_msg in
    let new_state = play the_state themove in
    let n_state = fst(new_state) in
    let last_player = List.nth (n_state.players) (List.length n_state.players - 1) in
+   (* Check if the last player has >10 gems *)
+   if ((calc_players_gems last_player) + last_player.gold) > 10 then discard_repl the_state
+   else
    if last_player.points >= 15
    then
      let turns_left = n_state.turns_taken mod (List.length n_state.players) in
