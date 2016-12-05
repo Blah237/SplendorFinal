@@ -791,35 +791,37 @@ let rec end_game s turns =
 
 
  let rec discard_repl state =
-    let deetz = wait_next_event[Key_pressed] in
-    let color =
-       match deetz.key with
-       | g -> Green
-       | w -> White
-       | b -> Blue
-       | l -> Black
-       | r -> Red
-       in
-    let (new_state,error_msg) = discard state color in
-    moveto (width/2 - 250) (height - 30);
-    set_color white;
-    set_text_size 10;
-    draw_string error_msg;
-    let n_state = new_state in
-    let last_player = List.nth (n_state.players) (List.length n_state.players - 1) in
-    (* Check if the last player has >10 gems *)
-    if ((calc_players_gems last_player.gems_held) + last_player.gold) > 10 then discard_repl new_state
-    else ()
+   let last_player = List.nth (state.players) (List.length state.players - 1) in
+   if ((calc_players_gems last_player.gems_held) + last_player.gold) < 10 then state
+   else
+   let () = draw state in
+   let () = moveto (width/2 - 250) (height - 30) in
+   let () = set_color white in
+   let () = set_text_size 10 in
+   let () = draw_string "Please Discard a gem: w,g,(b)lue,b(l)ack,r" in
+   let deetz = wait_next_event[Key_pressed] in
+   let color =
+     match deetz.key with
+     | 'g' -> Green
+     | 'w' -> White
+     | 'b' -> Blue
+     | 'l' -> Black
+     | 'r' -> Red
+     in
+  let (new_state,error_msg) = discard state color in
+  moveto (width/2 - 250) (height - 30);
+  set_color white;
+  set_text_size 10;
+  draw_string error_msg;
+  discard_repl new_state
 
  (* a test repl *)
  let rec repl the_state error_msg =
-   let themove = run the_state error_msg in
-   let new_state = play the_state themove in
+   let discard_state = discard_repl the_state in
+   let themove = run discard_state error_msg in
+   let new_state = play discard_state themove in
    let n_state = fst(new_state) in
-   let last_player = List.nth (n_state.players) (List.length n_state.players - 1) in
-   (* Check if the last player has >10 gems *)
-   if ((calc_players_gems last_player.gems_held) + last_player.gold) > 10 then discard_repl the_state
-   else
+   let last_player = List.nth (discard_state.players) (List.length discard_state.players - 1) in
    if last_player.points >= 15
    then
      let turns_left = n_state.turns_taken mod (List.length n_state.players) in
