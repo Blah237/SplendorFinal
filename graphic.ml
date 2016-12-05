@@ -364,9 +364,6 @@ let draw_players state =
 (* Draws a gem in a x y positions *)
 let drawsGem x y color =
   let radius = 13 in
-  let left = x + 10 + radius in
-  let top = (y + player_height - 40) in
-  let buffer = 3*radius in
   moveto x y;
   let (my_color,txt) = match color with
   | Green -> green,black
@@ -617,7 +614,6 @@ match clickable_list with
          | Card (card) -> draw_card_info card
          | Gem(x) -> draw_gem_info (swap_clickable clickable_list)
          | _ -> ()
-| _ -> ()
 
 (* Helper function on whether buy and reserve should be true or false
  * in terms of a valid move *)
@@ -629,7 +625,7 @@ match clickable_list with
               match (List.hd lst) with
               | Card(x) -> true
               | _ -> false
- | _ -> false
+
 
 
 
@@ -644,7 +640,7 @@ let new_move new_click lst =
   | Buy     -> true
   | Reserve -> eval_moves Reserve lst
   | Cancel  -> false
-  | _ -> false
+
 
 (* helper for get_move *)
 let color_gem gem =
@@ -674,7 +670,7 @@ let get_move clickable_lst new_click =
   | Reserve -> match List.nth clickable_lst 0 with
       | Card c -> Reserve c
       | _      -> failwith "This should never happen"
-  | _      -> failwith "This should never happen"
+
 
 (* Keep listening to user clicks until you get a valid move to return *)
 let rec graphic_play state clickable_lst =
@@ -802,14 +798,18 @@ let rec end_game s turns =
      let () = set_text_size 10 in
      let () = draw_string "Please Discard a gem: w,g,(b)lue,b(l)ack,r" in
      let deetz = wait_next_event[Key_pressed] in
-     let color =
-       match deetz.key with
+     let rec get_disc_color keypress =
+       match keypress.key with
        | 'g' -> Green
        | 'w' -> White
        | 'b' -> Blue
        | 'l' -> Black
        | 'r' -> Red
+       | _ ->
+          let new_deetz = wait_next_event[Key_pressed] in
+          get_disc_color new_deetz
        in
+    let color = get_disc_color deetz in
     let (new_state,error_msg) = discard state color in
     moveto (width/2 - 250) (height - 30);
     set_color white;
