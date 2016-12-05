@@ -1602,7 +1602,7 @@ let rec play s m =
 	match m with
 	| Three (x, y, z) ->
 	   let (a,b) = take_three_gems (List.hd s.players) s x y z in
-	   (change_nobles a, b)
+	   if b = "" then (change_nobles a, b) else (a,b)
 	| Two (x) ->
 	   let ret_val = take_two_gems (List.hd s.players) s x in
 		 if ret_val = None then
