@@ -1259,8 +1259,10 @@ let take_three_gems p s g1 g2 g3 =
 	in
 	match tup3 with
 	| Some(p, g) -> let m = Three(g1,g2,g3) in 
+					let new_player = if p.player_type = Human then p else
+					take_three_gems_helper p m in
 					let new_state =
-					{players = (take_three_gems_helper p m)::(List.tl s.players);
+					{players = (new_player)::(List.tl s.players);
 						(** a list of the players playing the game *)
 					tier1_deck = s.tier1_deck;
 					tier2_deck = s.tier2_deck;
