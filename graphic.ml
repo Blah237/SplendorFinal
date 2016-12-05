@@ -781,7 +781,6 @@ let run state error_msg=
 
 
 let rec end_game s turns =
- display_final_turns turns;
  let s = (discard_repl (fst(s)), snd(s)) in
  match s with
  | (a,b) -> if turns = 0 then
@@ -796,7 +795,6 @@ let rec end_game s turns =
                            gold=0} in
             let thewinnerlist = calculate_winner_list a.players winnerdummy [] in
             let final_winnerlist = break_ties thewinnerlist winnerdummy [] in
-            display_final_turns turns;
             draw_endgame_display final_winnerlist;
             let deets = wait_next_event[Button_down] in
             ()
@@ -804,7 +802,9 @@ let rec end_game s turns =
             let msg = "turns left : " ^ (string_of_int turns) in
             let themove = run a msg in
             let new_state = play a themove in
+            if snd new_state = "" then
             let new_turns = turns - 1 in end_game new_state new_turns
+            else end_game new_state turns 
 
 
 
@@ -814,10 +814,10 @@ let rec end_game s turns =
    let themove = run discard_state error_msg in
    let new_state = play discard_state themove in
    let n_state = fst(new_state) in
-   let last_player = List.nth (discard_state.players) (List.length discard_state.players - 1) in
+   let last_player = List.nth (n_state.players) (List.length n_state.players - 1) in
    if last_player.points >= 15
    then
-     let turns_left = n_state.turns_taken mod (List.length n_state.players) in
+     let turns_left = (List.length n_state.players) - (n_state.turns_taken mod (List.length n_state.players)) in
      end_game new_state turns_left
    else
    match new_state with
