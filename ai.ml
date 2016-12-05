@@ -41,10 +41,10 @@ let cost_remaining ai c : gems =
 	let blue_cost = c.gem_cost.blue - ai.gems_held.blue  - ai.discounts.blue in
 	let green_cost = c.gem_cost.green - ai.gems_held.green
 	- ai.discounts.green in
-	let black_cost = c.gem_cost.black - ai.gems_held.white
-	- ai.discounts.white in
+	let black_cost = c.gem_cost.black - ai.gems_held.black
+	- ai.discounts.black in
 	let white_cost = c.gem_cost.white - ai.gems_held.white  -
-    ai.discounts.black in
+    ai.discounts.white in
 	{red = red_cost;
 	blue = blue_cost;
 	black = black_cost;
@@ -355,10 +355,17 @@ let rec determine_gem_goal ai clist acc =
 (** returns [true] if a card is purchasable with the ai's current gems, and
 * [false] if not *)
 let is_purchasable ai c =
-	let remainingcost = cost_remaining ai c in
-	let pairs = make_paired_list remainingcost in
+	let theremainingcost = cost_remaining ai c in
+	if theremainingcost.red <= 0 
+	&& theremainingcost.blue <= 0
+	&& theremainingcost.green <= 0
+	&& theremainingcost.black <= 0
+	&& theremainingcost.white <= 0
+	then true else false
+
+	(*let pairs = make_paired_list remainingcost in
 	let no_zeroes = remove_zero_costs pairs [] in
-	if List.length no_zeroes = 0 then true else false
+	if List.length no_zeroes = 0 then true else false*)
 
 (** returns [Some Buy card] where card is the first card in the list of goals
  * that the ai can purcahse, and [None] if no card in the goals list is
@@ -408,7 +415,7 @@ let rec gem_piles_3 thegemspairedlist acc =
 
 (** determines ai behavior for a non-edge case "take three gems" move, where
 * it does not have 8 or more gems and there at least 4 gem piles remaining *)
-let rec normal_gem_move available gemgoals acc =
+let rec normal_gem_move available gemgoals acc redbool bluebool greenbool whitebool blackbool =
 	if List.length acc = 3 then
 	let thefirst = List.nth acc 0 in
 	let thesecond = List.nth acc 1 in
@@ -427,16 +434,17 @@ let rec normal_gem_move available gemgoals acc =
 		else Pass
 	| hd::tl ->
 	(match hd with
-	| Red -> if available.red > 0 then let new_acc = hd::acc in
+	| Red -> if available.red > 0 && redbool then let new_acc = hd::acc in
 								  let new_available =
 								  {red = available.red - 1;
 								  blue = available.blue;
 								  black = available.black;
 								  green = available.green;
 								  white = available.white} in
-								  normal_gem_move new_available tl new_acc
-			 else normal_gem_move available tl acc
-	| Blue -> if available.blue > 0 then let new_acc = hd::acc in
+								  normal_gem_move new_available tl new_acc 
+								  false bluebool greenbool whitebool blackbool
+			 else normal_gem_move available tl acc redbool bluebool greenbool whitebool blackbool
+	| Blue -> if available.blue > 0 && bluebool then let new_acc = hd::acc in
 								  let new_available =
 								  {red = available.red;
 								  blue = available.blue - 1;
@@ -444,8 +452,9 @@ let rec normal_gem_move available gemgoals acc =
 								  green = available.green;
 								  white = available.white} in
 								  normal_gem_move new_available tl new_acc
-			  else normal_gem_move available tl acc
-	| Black -> if available.black > 0 then let new_acc = hd::acc in
+								  redbool false greenbool whitebool blackbool
+			  else normal_gem_move available tl acc redbool bluebool greenbool whitebool blackbool
+	| Black -> if available.black > 0 && blackbool then let new_acc = hd::acc in
 								  let new_available =
 								  {red = available.red;
 								  blue = available.blue;
@@ -453,8 +462,9 @@ let rec normal_gem_move available gemgoals acc =
 								  green = available.green;
 								  white = available.white} in
 								  normal_gem_move new_available tl new_acc
-			   else normal_gem_move available tl acc
-	| Green -> if available.green > 0 then let new_acc = hd::acc in
+								  redbool bluebool greenbool whitebool false
+			   else normal_gem_move available tl acc redbool bluebool greenbool whitebool blackbool
+	| Green -> if available.green > 0 && greenbool then let new_acc = hd::acc in
 								  let new_available =
 								  {red = available.red;
 								  blue = available.blue;
@@ -462,8 +472,9 @@ let rec normal_gem_move available gemgoals acc =
 								  green = available.green - 1;
 								  white = available.white} in
 								  normal_gem_move new_available tl new_acc
-			   else normal_gem_move available tl acc
-	| White -> if available.white > 0 then let new_acc = hd::acc in
+								  redbool bluebool false whitebool blackbool
+			   else normal_gem_move available tl acc redbool bluebool greenbool whitebool blackbool
+	| White -> if available.white > 0 && whitebool then let new_acc = hd::acc in
 								  let new_available =
 								  {red = available.red;
 								  blue = available.blue;
@@ -471,7 +482,8 @@ let rec normal_gem_move available gemgoals acc =
 								  green = available.green;
 								  white = available.white - 1} in
 								  normal_gem_move new_available tl new_acc
-               else normal_gem_move available tl acc))
+								  redbool bluebool greenbool false blackbool
+               else normal_gem_move available tl acc redbool bluebool greenbool whitebool blackbool))
 
 
 (**** DETERMINE MOVE FUNCTIONS *****)
@@ -501,10 +513,10 @@ let determine_early_move s ai =
     match zero_gem_move with
     | Some x -> x
     | None -> let thegemgoals = determine_gem_goal ai early_goal [] in
-    		  normal_gem_move s.available_gems thegemgoals []
+    		  normal_gem_move s.available_gems thegemgoals [] true true true true true
     else
     	let thegemgoals = determine_gem_goal ai early_goal [] in
-    		  normal_gem_move s.available_gems thegemgoals []
+    		  normal_gem_move s.available_gems thegemgoals [] true true true true true
 
 (** Determines the move an ai should make in the late game. The ai will
 * seek to the highest point value card that is feasible based on the
@@ -531,10 +543,10 @@ let determine_late_move s ai =
     match zero_gem_move with
     | Some x -> x
     | None -> let thegemgoals = determine_gem_goal ai late_goal [] in
-    		  normal_gem_move s.available_gems thegemgoals []
+    		  normal_gem_move s.available_gems thegemgoals [] true true true true true
     else
     	let thegemgoals = determine_gem_goal ai late_goal [] in
-    		  normal_gem_move s.available_gems thegemgoals []
+    		  normal_gem_move s.available_gems thegemgoals [] true true true true true
 
 
 (***************************** DETERMINE MOVE *******************************)
