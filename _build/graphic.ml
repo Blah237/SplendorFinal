@@ -785,7 +785,7 @@ let rec end_game s turns =
    let new_state = play the_state themove in
    let n_state = fst(new_state) in
    let last_player = List.nth (n_state.players) (List.length n_state.players - 1) in
-   if last_player.points >= 0
+   if last_player.points >= 15
    then
      let turns_left = n_state.turns_taken mod (List.length n_state.players) in
      end_game new_state turns_left
