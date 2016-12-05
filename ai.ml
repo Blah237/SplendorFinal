@@ -384,7 +384,7 @@ let rec try_purchase_all ai orderedgoals =
 * gem pile remaining *)
 let rec gem_piles_1 thegemspairedlist =
 	match thegemspairedlist with
-	| [] -> let () = print_string "this should never happen1" in Pass
+	| [] -> Pass
 	| (a,b)::tl -> if b <> 0 then Three (a,None,None) else gem_piles_1 tl
 
 (** determines the move the ai should make when there are only two
@@ -395,7 +395,7 @@ let rec gem_piles_2 thegemspairedlist acc =
 	let thesecond = List.nth acc 1 in
 	Three (thefirst, Some thesecond, None) else
 	match thegemspairedlist with
-	| [] -> let () = print_string "this should never happen2" in Pass
+	| [] -> Pass
 	| (a,b)::tl -> if b = 0 then gem_piles_2 tl acc else
 				   let new_acc = a::acc in
 				   gem_piles_2 tl new_acc
@@ -409,7 +409,7 @@ let rec gem_piles_3 thegemspairedlist acc =
 	let thethird = List.nth acc 2 in
 	Three (thefirst, Some thesecond, Some thethird) else
 	match thegemspairedlist with
-	| [] -> let () = print_string "this should never happen3" in Pass
+	| [] -> Pass
 	| (a,b)::tl -> if b = 0 then gem_piles_3 tl acc else
 				   let new_acc = a::acc in
 				   gem_piles_3 tl new_acc
@@ -433,7 +433,7 @@ redbool bluebool greenbool whitebool blackbool =
 		else if List.length acc = 1 then
 			let thefirst = List.nth acc 0 in
 			Three (thefirst, None, None)
-		else let () = print_string "this should never happen normal" in Pass
+		else Pass
 	| hd::tl ->
 	(match hd with
 	| Red -> if available.red > 0 && redbool then let new_acc = hd::acc in
@@ -506,7 +506,7 @@ let determine_early_move s ai =
 	match zero_gem_move with
 	| Some x -> x
 	| None -> 
-	if s.gem_piles = 0 then let () = print_string "0 pass" in Pass else
+	if s.gem_piles = 0 then Pass else
 	if s.gem_piles = 1 then gem_piles_1 paired_list else
 	if s.gem_piles = 2 then gem_piles_2 paired_list [] else
 	gem_piles_3 paired_list [] else
@@ -536,7 +536,7 @@ let determine_late_move s ai =
 	match zero_gem_move with
 	| Some x -> x
 	| None ->
-	if s.gem_piles = 0 then let () = print_string "0 pass late" in Pass else
+	if s.gem_piles = 0 then Pass else
 	if s.gem_piles = 1 then gem_piles_1 paired_list else
 	if s.gem_piles = 2 then gem_piles_2 paired_list [] else
 	gem_piles_3 paired_list [] else
