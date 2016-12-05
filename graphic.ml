@@ -794,26 +794,36 @@ let rec end_game s turns =
    let last_player = List.nth (state.players) (List.length state.players - 1) in
    if ((calc_players_gems last_player.gems_held) + last_player.gold) <= 10 then state
    else
-   let () = draw state in
-   let () = moveto (width/2 - 250) (height - 30) in
-   let () = set_color white in
-   let () = set_text_size 10 in
-   let () = draw_string "Please Discard a gem: w,g,(b)lue,b(l)ack,r" in
-   let deetz = wait_next_event[Key_pressed] in
-   let color =
-     match deetz.key with
-     | 'g' -> Green
-     | 'w' -> White
-     | 'b' -> Blue
-     | 'l' -> Black
-     | 'r' -> Red
-     in
-  let (new_state,error_msg) = discard state color in
-  moveto (width/2 - 250) (height - 30);
-  set_color white;
-  set_text_size 10;
-  draw_string error_msg;
-  discard_repl new_state
+   match last_player.player_type with
+   | Human ->
+     let () = draw state in
+     let () = moveto (width/2 - 250) (height - 30) in
+     let () = set_color white in
+     let () = set_text_size 10 in
+     let () = draw_string "Please Discard a gem: w,g,(b)lue,b(l)ack,r" in
+     let deetz = wait_next_event[Key_pressed] in
+     let color =
+       match deetz.key with
+       | 'g' -> Green
+       | 'w' -> White
+       | 'b' -> Blue
+       | 'l' -> Black
+       | 'r' -> Red
+       in
+    let (new_state,error_msg) = discard state color in
+    moveto (width/2 - 250) (height - 30);
+    set_color white;
+    set_text_size 10;
+    draw_string error_msg;
+    discard_repl new_state
+  | Ai(x) ->
+     let color = determine_discard state in
+     let (new_state,error_msg) = discard state color in
+     moveto (width/2 - 250) (height - 30);
+     set_color white;
+     set_text_size 10;
+     draw_string error_msg;
+     discard_repl new_state
 
  (* a test repl *)
  let rec repl the_state error_msg =
