@@ -12,6 +12,7 @@ let white  = rgb 246 246 246
 let gold   = rgb 218 165 32
 let grey   = rgb 160 160 160
 let silver = rgb 192 192 192
+let indigo = rgb 75 0 130
 
 (* Window Size *)
 let height = 675
@@ -293,11 +294,10 @@ let draw_player player color x y =
           | Black -> black, white
           | Green -> green, black
           | White -> white, black in
-    set_color color;
+    set_color indigo;
     fill_rect (left + num*buffer) bottom c_width c_height;
     moveto (left + num*buffer + c_width/2 - 2) (bottom + c_height/2 - 5);
     set_color text;
-    draw_string (string_of_int card.points);
     () in
   let rec draw_all card_lst num =
     match card_lst with
