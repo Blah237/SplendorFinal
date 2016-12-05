@@ -431,7 +431,7 @@ let gem_click mouse_x mouse_y =
       else if color = 2 then Some (Gem blue)
       else if color = 3 then Some (Gem black)
       else if color = 4 then Some (Gem red)
-      else                   Some (Gem gold)
+      else                   None
 
 (* Check if user clicked on card. Returns Some clicked, or None *)
 let card_click mouse_x mouse_y state =
@@ -496,16 +496,41 @@ let button_click mouse_x mouse_y =
       else if button = 3 then Some Buy
       else failwith "code bug"
 
+(* Check if user clicked on a reserved card *)
+let reserved_click mouse_x mouse_y state =
+  let left = 710 in
+  let top = 595 in
+  let bottom = 560 in
+  let width = 26 in
+  let buffer = 13 in
+  if mouse_x < left ||
+     mouse_x > left + 3*width + 2*buffer ||
+     mouse_y < bottom ||
+     mouse_y > top
+  then None
+  else
+    (* Check if click is between gems *)
+    if (mouse_x - left) mod (width + buffer) > width
+    then None
+  else
+    let card = 1 + (mouse_x - left)/(width + buffer) in
+    let player1 = List.nth state.players 0 in
+    if (List.length player1.reserved < card) then None else
+      let card = List.nth player1.reserved (card - 1) in
+      Some (Card (card))
+
 (* Check if user clicked on either card or gem. Return clicked *)
 let click mouse_x mouse_y state =
   let gem_click = gem_click mouse_x mouse_y in
   let card_click = card_click mouse_x mouse_y state in
   let deck_click = deck_click mouse_x mouse_y in
   let button_click = button_click mouse_x mouse_y in
+  let reserved_click = reserved_click mouse_x mouse_y state in
   if gem_click <> None then gem_click
   else if card_click <> None then card_click
   else if deck_click <> None then deck_click
   else if button_click <> None then button_click
+  else if reserved_click <> None then reserved_click
   else None
 
 (* Draw the window *)
@@ -583,9 +608,9 @@ let new_move new_click lst =
   match new_click with
   | Gem _   -> false
   | Card _  -> false
-  | Deck1   -> false
-  | Deck2   -> false
-  | Deck3   -> false
+  | Deck1   -> true
+  | Deck2   -> true
+  | Deck3   -> true
   | Buy     -> true
   | Reserve -> eval_moves Reserve lst
   | Cancel  -> false
@@ -604,6 +629,9 @@ let color_gem gem =
 (* Create a move from clickable_lst and new_click *)
 let get_move clickable_lst new_click =
   match new_click with
+  | Deck1  -> Top 1
+  | Deck2  -> Top 2
+  | Deck3  -> Top 3
   | Buy     ->
       begin match List.nth clickable_lst 0 with
       | Gem _  -> begin match clickable_lst with
@@ -615,9 +643,6 @@ let get_move clickable_lst new_click =
       | _      -> failwith "This should never happen" end
   | Reserve -> match List.nth clickable_lst 0 with
       | Card c -> Reserve c
-      | Deck1  -> Top 1
-      | Deck2  -> Top 2
-      | Deck3  -> Top 3
       | _      -> failwith "This should never happen"
   | _      -> failwith "This should never happen"
 
