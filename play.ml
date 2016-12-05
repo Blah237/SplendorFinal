@@ -981,6 +981,32 @@ let take_gem n gem p g =
 		} in
 	(p_new, snd tup)
 
+(* Returns the state after the player who just moved discards a gem of color [gem] *)
+let discard s gem = 
+	let p = List.nth s.players (List.length s.players - 1) in
+	let (p_new, g) = take_gem (-1) gem p s.available_gems in 
+	{players = find_p p p_new s.players;
+		(** a list of the players playing the game *)
+	tier1_deck = s.tier1_deck;
+	tier2_deck = s.tier2_deck;
+	tier3_deck = s.tier3_deck;
+		(** the cards remaining in the decks of cards, seperated by tier *)
+	tier1 = s.tier1;
+	tier2 = s.tier2;
+	tier3 = s.tier3;
+		(** the cards available, seperated by tier *)
+	nobles = s.nobles;
+		(** the nobles currently available *)
+	available_gems = g;
+		(** the gems currently available for taking *)
+	gem_piles = s.gem_piles;
+	(** used for checking how many gems a player can/must take if there are
+	less than three piles *)
+	turns_taken = s.turns_taken;
+	(** used for ai behavior *)
+	gold = s.gold;
+	(** the number of gold coins available **)
+}
 
 (* make the players, randomize the order, shuffle decks, putting out cards *)
 let init_state num_human num_ai =
