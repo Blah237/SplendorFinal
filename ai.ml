@@ -3,7 +3,7 @@
 The website below was relied on heavily to write the sublist function:
 *http://stackoverflow.com/questions/2710233/how-to-get-a-sub-list-from-a-list-in-ocaml*)
 
-(*open Card*)
+open Card
 
 (********* GENERAL USE FUNCTIONS BELOW *********)
 
@@ -415,7 +415,8 @@ let rec gem_piles_3 thegemspairedlist acc =
 
 (** determines ai behavior for a non-edge case "take three gems" move, where
 * it does not have 8 or more gems and there at least 4 gem piles remaining *)
-let rec normal_gem_move available gemgoals acc redbool bluebool greenbool whitebool blackbool =
+let rec normal_gem_move available gemgoals acc 
+redbool bluebool greenbool whitebool blackbool =
 	if List.length acc = 3 then
 	let thefirst = List.nth acc 0 in
 	let thesecond = List.nth acc 1 in

@@ -1,5 +1,4 @@
-(*open Card
-open Ai*)
+open Card
 
 let empty_gems = {red = 0; blue = 0; black = 0; green = 0; white = 0}
 

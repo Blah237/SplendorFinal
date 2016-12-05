@@ -24,11 +24,7 @@ val reserve_top : player -> state -> int -> state option
 
 (** [check_nobles p state nobles] returns a list of nobles that player [p] is eligible
 * to take, or [None] if that player cannot take any*)
-val check_nobles : player -> state -> noble list -> noble list 
-
-(** [end game p state turns] ends the game when player [p] reaches 15 points, with
-* [turns] turns remaining*)
-val end_game : player -> state -> int -> state
+val check_nobles : player -> state -> gems list -> gems list
 
 (** [play s m] is the main function that plays the game, and returns the state
 * after the current player makes move [m] *)

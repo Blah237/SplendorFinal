@@ -1,11 +1,7 @@
-(* open Card
-open Play *)
-
-#require "graphics";;
-#use "card.ml"
-#use "play.ml";;
-#use "ai.ml"
+open Card
+open Play
 open Graphics
+open Ai
 
 (* colors *)
 let red    = rgb 222 27  27
@@ -48,11 +44,6 @@ let player_height = 150
 let player_width = 240
 let player_left = 700
 let player_buffer = 15
-
-(* Decks and cards and nobles *)
-let game_t1 = four_rest (shuffle make_tier_1)
-let game_t2 = four_rest (shuffle make_tier_2)
-let game_t3 = four_rest (shuffle make_tier_3)
 
 (* Type for all possible clicks on the board *)
 type clickable =
@@ -685,6 +676,7 @@ let rec repl the_state error_msg =
   | (a,b) ->
      repl a b; ()
 
+let () = repl the_state ""
 
 (*let rec end_game s turns =
   DISPLAY MESSAGE "turns turns remaining"
