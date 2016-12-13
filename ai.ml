@@ -580,7 +580,7 @@ let take_three_gems_helper_helper ai three =
 let take_three_gems_helper ai three =
 	let new_list = take_three_gems_helper_helper ai three in
 	let corrected = if List.length new_list >= 21 then
-	sublist 0 18 new_list else new_list in
+	sublist 0 15 new_list else new_list in
 	{name = ai.name;
 	gems_held = ai.gems_held;
 	discounts = ai.discounts;
@@ -624,7 +624,7 @@ let rec determine_discard s =
 					 	player_type = Ai new_ai_list;
 					 	reserved = current_player.reserved;
 						} in
-					let new_corrected_size_one = correctedsize - 1 in
+					let new_corrected_size_one = num_players - 1 in
 					let new_player_list_sub = sublist 0 
 					new_corrected_size_one player_list in
 					let new_player_list = new_player_list_sub @ [new_player] in
