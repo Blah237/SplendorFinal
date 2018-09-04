@@ -4,7 +4,7 @@ Please have OCaml Graphics installed on your machine, and X11. This should be au
 
 -------
 
-Dear grader:
+Dear player:
 
 Welcome to Splendor! Before you play, be sure to read the rulebook here:
 http://www.spacecowboys.fr/img/games/splendor/details/rules/Rules_Splendor_US.pdf
